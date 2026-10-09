@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notification Center | CivicConnect</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <style>
+        .notif-hero {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 50%, #475569 100%);
+            color: #ffffff;
+            border-radius: var(--radius-xl);
+            padding: 32px 28px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(30, 41, 59, 0.2);
+        }
+        .notif-hero::after {
+            content: '';
+            position: absolute;
+            top: -40px;
+            right: -40px;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.2) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .notif-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 18px 20px;
+            margin-bottom: 12px;
+            transition: var(--transition);
+            position: relative;
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+        }
+        .notif-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+            border-color: #94a3b8;
+        }
+        .notif-card.unread {
+            background: var(--bg-surface);
+            border-left: 4px solid var(--primary);
+        }
+        .notif-card.is-emergency {
+            border-left: 5px solid #ef4444 !important;
+            background: rgba(239, 68, 68, 0.04);
+        }
+
+        .notif-icon-circle {
+            width: 44px;
+            height: 44px;
+            min-width: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .notif-filter-btn {
+            border-radius: 30px;
+            padding: 7px 18px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: var(--transition);
+        }
+
+        .unread-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--primary);
+            border-radius: 50%;
+            display: inline-block;
+        }
+    </style>
+</head>
+
+<body class="bg-light">
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm py-2">
+    <div class="container">
+        <a class="navbar-brand fw-bold text-white" href="{{ url_for('dashboard') }}">
+            <i class="bi bi-buildings-fill text-primary me-2"></i> CivicConnect
+            <span class="badge bg-secondary text-uppercase small ms-1">{{ role }}</span>
+        </a>
+
+        <div class="d-flex align-items-center gap-3">
+            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-light btn-sm">
+                <i class="bi bi-speedometer2 me-1"></i> Dashboard
+            </a>
+            <a href="{{ url_for('logout') }}" class="btn btn-outline-warning btn-sm">
+                <i class="bi bi-box-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+</nav>
+
+<div class="container py-4">
+
+    <!-- Hero Header -->
+    <div class="notif-hero mb-4">
+        <div class="row align-items-center g-3">
+            <div class="col-md-8">
+                <span class="badge bg-primary bg-opacity-75 text-white mb-2 px-3 py-1 small">
+                    <i class="bi bi-bell-fill me-1"></i> Live Notification Stream
+                </span>
+                <h2 class="display-6 fw-bold mb-1">Notifications & Activity Feed</h2>
+                <p class="mb-0 text-white text-opacity-80 small">
+                    Stay up to date with civic resolutions, emergency sirens, volunteer missions, and ticket lifecycle events.
+                </p>
+            </div>
+            <div class="col-md-4 text-md-end">
+                {% if unread_count > 0 %}
+                    <button class="btn btn-light fw-bold shadow-sm" onclick="markAllNotificationsRead()">
+                        <i class="bi bi-check2-all me-1"></i> Mark All as Read
+                    </button>
+                {% else %}
+                    <span class="badge bg-white bg-opacity-20 text-white p-2 px-3 fs-6">
+                        <i class="bi bi-check-circle-fill text-success me-1"></i> All Caught Up!
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Buttons Bar -->
+    <div class="d-flex flex-wrap gap-2 mb-4 align-items-center justify-content-between">
+        <div class="d-flex flex-wrap gap-2" id="filterBtnGroup">
+            <button class="btn btn-primary notif-filter-btn" data-filter="all" onclick="filterNotifs('all', this)">
+                All <span class="badge bg-white text-primary ms-1">{{ notifications|length }}</span>
+            </button>
+            <button class="btn btn-outline-secondary notif-filter-btn" data-filter="unread" onclick="filterNotifs('unread', this)">
+                Unread <span class="badge bg-secondary text-white ms-1" id="unreadPillCount">{{ unread_count }}</span>
+            </button>
+            <button class="btn btn-outline-danger notif-filter-btn" data-filter="emergency" onclick="filterNotifs('emergency', this)">
+                🚨 Emergencies <span class="badge bg-danger text-white ms-1">{{ emergency_count }}</span>
+            </button>
+            <button class="btn btn-outline-secondary notif-filter-btn" data-filter="ticket_update" onclick="filterNotifs('ticket_update', this)">
+                🎫 Tickets
+            </button>
+            <button class="btn btn-outline-secondary notif-filter-btn" data-filter="volunteer" onclick="filterNotifs('volunteer', this)">
+                🤝 Community
+            </button>
+        </div>
+
+        <div class="small text-muted">
+            Auto-refreshing every 20 seconds
+        </div>
+    </div>
+
+    <!-- Notifications Stream List -->
+    <div id="notificationsContainer">
+        {% if notifications %}
+            {% for n in notifications %}
+                <div class="notif-card {% if not n.is_read %}unread{% endif %} {% if n.is_emergency %}is-emergency{% endif %}"
+                     data-id="{{ n.id }}"
+                     data-category="{{ n.category }}"
+                     data-unread="{{ 'true' if not n.is_read else 'false' }}"
+                     data-emergency="{{ 'true' if n.is_emergency else 'false' }}">
+
+                    <!-- Category Icon -->
+                    <div class="notif-icon-circle {% if n.is_emergency %}bg-danger text-white{% elif n.category == 'ticket_update' %}bg-primary-subtle text-primary{% elif n.category == 'volunteer' %}bg-success-subtle text-success{% elif n.category == 'donation' %}bg-info-subtle text-info{% else %}bg-secondary-subtle text-secondary{% endif %}">
+                        {% if n.is_emergency %}
+                            <i class="bi bi-shield-fill-exclamation"></i>
+                        {% elif n.category == 'ticket_update' %}
+                            <i class="bi bi-ticket-detailed-fill"></i>
+                        {% elif n.category == 'volunteer' %}
+                            <i class="bi bi-people-fill"></i>
+                        {% elif n.category == 'donation' %}
+                            <i class="bi bi-heart-fill"></i>
+                        {% else %}
+                            <i class="bi bi-bell-fill"></i>
+                        {% endif %}
+                    </div>
+
+                    <!-- Content -->
+                    <div class="flex-grow-1">
+                        <div class="d-flex align-items-center justify-content-between mb-1">
+                            <div class="d-flex align-items-center gap-2">
+                                <h6 class="fw-bold mb-0 text-dark {% if not n.is_read %}fw-bolder{% endif %}">
+                                    {{ n.title }}
+                                </h6>
+                                {% if not n.is_read %}
+                                    <span class="unread-dot" title="Unread"></span>
+                                {% endif %}
+                                {% if n.is_emergency %}
+                                    <span class="badge bg-danger text-white small">EMERGENCY SOS</span>
+                                {% endif %}
+                            </div>
+                            <span class="text-muted small">
+                                <i class="bi bi-clock me-1"></i> {{ n.time_ago }}
+                            </span>
+                        </div>
+
+                        <p class="mb-2 text-body-secondary small" style="line-height: 1.45;">
+                            {{ n.message }}
+                        </p>
+
+                        <div class="d-flex align-items-center gap-2 pt-1">
+                            {% if n.is_emergency %}
+                                <button type="button" class="btn btn-sm btn-danger fw-bold py-1 px-3 shadow-sm"
+                                        onclick="handleEmergencyNotifClick({{ n.id }}, '{{ n.title|replace('\'', '\\\'') }}', '{{ n.message|replace('\'', '\\\'') }}', '{{ n.link or '/emergency/alerts' }}')">
+                                    <i class="bi bi-shield-fill-exclamation me-1"></i> View Emergency Directives
+                                </button>
+                                <a href="{{ n.link or '/emergency/alerts' }}" class="btn btn-sm btn-outline-danger py-1 px-2" title="Go to Crisis Hub">
+                                    <i class="bi bi-box-arrow-up-right"></i>
+                                </a>
+                            {% else %}
+                                {% if n.link %}
+                                    <a href="{{ n.link }}" class="btn btn-sm btn-outline-primary py-1 px-3" onclick="markReadAndNavigate({{ n.id }}, event, '{{ n.link }}')">
+                                        View Details <i class="bi bi-arrow-right ms-1"></i>
+                                    </a>
+                                {% endif %}
+                            {% endif %}
+
+                            {% if not n.is_read %}
+                                <button type="button" class="btn btn-sm btn-light text-muted py-1 px-2 border" onclick="markSingleRead({{ n.id }}, this)">
+                                    <i class="bi bi-check2 me-1"></i> Mark as read
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="text-center py-5 bg-white rounded-4 border shadow-sm">
+                <i class="bi bi-bell-slash display-4 text-muted opacity-50 mb-3 d-block"></i>
+                <h5 class="fw-bold">No Notifications Yet</h5>
+                <p class="text-muted small mb-0">You're completely up to date! As civic actions take place, updates will stream here.</p>
+            </div>
+        {% endif %}
+    </div>
+
+</div>
+
+<!-- Footer -->
+<footer class="bg-dark text-white text-center py-4 mt-5">
+    <div class="container">
+        <p class="text-white-50 small mb-0">
+            CivicConnect Citizen Portal &copy; 2026. Real-time updates & civic engagement.
+        </p>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
+<script>
+function filterNotifs(filter, btn) {
+    // Update active button state
+    document.querySelectorAll('#filterBtnGroup .btn').forEach(b => {
+        b.classList.remove('btn-primary');
+        if (!b.classList.contains('btn-outline-danger')) {
+            b.classList.add('btn-outline-secondary');
+        }
+    });
+    btn.classList.remove('btn-outline-secondary');
+    btn.classList.add('btn-primary');
+
+    const cards = document.querySelectorAll('.notif-card');
+    cards.forEach(card => {
+        if (filter === 'all') {
+            card.style.display = 'flex';
+        } else if (filter === 'unread') {
+            card.style.display = card.dataset.unread === 'true' ? 'flex' : 'none';
+        } else if (filter === 'emergency') {
+            card.style.display = card.dataset.emergency === 'true' ? 'flex' : 'none';
+        } else {
+            card.style.display = card.dataset.category === filter ? 'flex' : 'none';
+        }
+    });
+}
+
+async function markSingleRead(notifId, btn) {
+    try {
+        const res = await fetch(`/api/notifications/mark_read/${notifId}`, { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+            const card = document.querySelector(`.notif-card[data-id="${notifId}"]`);
+            if (card) {
+                card.classList.remove('unread');
+                card.dataset.unread = 'false';
+                const dot = card.querySelector('.unread-dot');
+                if (dot) dot.remove();
+                if (btn) btn.remove();
+            }
+            updateUnreadCounter();
+        }
+    } catch (e) {
+        console.error('Error marking notification read:', e);
+    }
+}
+
+async function markReadAndNavigate(notifId, event, targetUrl) {
+    event.preventDefault();
+    try {
+        await fetch(`/api/notifications/mark_read/${notifId}`, { method: 'POST' });
+    } catch (e) {
+        // proceed anyway
+    }
+    window.location.href = targetUrl;
+}
+
+async function handleEmergencyNotifClick(notifId, title, message, link) {
+    try {
+        await fetch(`/api/notifications/mark_read/${notifId}`, { method: 'POST' });
+        const card = document.querySelector(`.notif-card[data-id="${notifId}"]`);
+        if (card) {
+            card.classList.remove('unread');
+            card.dataset.unread = 'false';
+            const dot = card.querySelector('.unread-dot');
+            if (dot) dot.remove();
+            const markBtn = card.querySelector('button[onclick*="markSingleRead"]');
+            if (markBtn) markBtn.remove();
+        }
+        updateUnreadCounter();
+    } catch (e) {}
+
+    if (window.openEmergencyModal) {
+        window.openEmergencyModal(title, message, '112 / 108 / 1800-CIVIC-ALERT', link || '/emergency/alerts');
+    } else {
+        window.location.href = link || '/emergency/alerts';
+    }
+}
+
+async function markAllNotificationsRead() {
+    try {
+        const res = await fetch('/api/notifications/mark_all_read', { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+            document.querySelectorAll('.notif-card').forEach(card => {
+                card.classList.remove('unread');
+                card.dataset.unread = 'false';
+                const dot = card.querySelector('.unread-dot');
+                if (dot) dot.remove();
+                const markBtn = card.querySelector('button[onclick*="markSingleRead"]');
+                if (markBtn) markBtn.remove();
+            });
+            const pill = document.getElementById('unreadPillCount');
+            if (pill) pill.textContent = '0';
+            window.location.reload();
+        }
+    } catch (e) {
+        console.error('Error marking all notifications read:', e);
+    }
+}
+
+function updateUnreadCounter() {
+    const unreadCards = document.querySelectorAll('.notif-card[data-unread="true"]');
+    const pill = document.getElementById('unreadPillCount');
+    if (pill) pill.textContent = unreadCards.length;
+}
+</script>
+
+</body>
+</html>

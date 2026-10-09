@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emergency Command Center | CivicConnect Municipal</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <style>
+        .emergency-hero {
+            background: linear-gradient(135deg, #450a0a 0%, #7f1d1d 50%, #991b1b 100%);
+            color: #ffffff;
+            border-radius: var(--radius-xl);
+            padding: 35px 30px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(185, 28, 28, 0.3);
+        }
+        .emergency-hero::after {
+            content: '';
+            position: absolute;
+            top: -40px;
+            right: -40px;
+            width: 240px;
+            height: 240px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(239, 68, 68, 0.25) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .active-alert-card {
+            border: 2px solid #ef4444;
+            background: linear-gradient(180deg, rgba(239, 68, 68, 0.08) 0%, rgba(220, 38, 38, 0.03) 100%);
+            border-radius: var(--radius-lg);
+            position: relative;
+            animation: pulseCard 2.5s infinite;
+        }
+        @keyframes pulseCard {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+            50% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+        }
+
+        .beacon-siren {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #ef4444;
+            color: white;
+            font-size: 1.5rem;
+            animation: beaconGlow 1.2s infinite alternate;
+        }
+        @keyframes beaconGlow {
+            from { transform: scale(0.95); opacity: 0.85; filter: drop-shadow(0 0 2px #ef4444); }
+            to { transform: scale(1.1); opacity: 1; filter: drop-shadow(0 0 14px #ef4444); }
+        }
+
+        .sos-badge-pill {
+            background-color: #ef4444;
+            color: white;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .stat-badge-box {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body class="bg-light">
+
+<!-- ===================================================== -->
+<!-- NAVBAR -->
+<!-- ===================================================== -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="{{ url_for('dashboard') }}">
+            <i class="bi bi-buildings-fill text-danger me-1"></i> CivicConnect Municipal
+        </a>
+
+        <button class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#menu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="menu">
+            <ul class="navbar-nav ms-auto align-items-lg-center gap-1">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('dashboard') }}">
+                        <i class="bi bi-speedometer2 me-1"></i> Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('municipal_complaints') }}">
+                        <i class="bi bi-list-check me-1"></i> Complaints
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active fw-bold text-danger" href="{{ url_for('municipal_emergency') }}">
+                        <i class="bi bi-shield-fill-exclamation me-1"></i> Emergency Ops
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('announcements') }}">
+                        <i class="bi bi-megaphone me-1"></i> Announcements
+                    </a>
+                </li>
+                <li class="nav-item ms-lg-2">
+                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-2 rounded-pill">
+                        <i class="bi bi-person-fill-lock me-1"></i> {{ username }}
+                    </span>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-warning" href="{{ url_for('logout') }}">
+                        <i class="bi bi-box-arrow-right"></i>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container py-4">
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, msg in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm" role="alert">
+                    <i class="bi bi-info-circle-fill me-2"></i> {{ msg }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Hero Header -->
+    <div class="emergency-hero mb-4">
+        <div class="row align-items-center g-3">
+            <div class="col-lg-8">
+                <span class="badge bg-danger bg-opacity-75 text-white mb-2 px-3 py-1 small">
+                    <i class="bi bi-broadcast me-1"></i> Crisis & Disaster Response Management
+                </span>
+                <h1 class="display-6 fw-bold mb-2">Municipal Emergency Command Center</h1>
+                <p class="mb-0 text-white text-opacity-90 small">
+                    Broadcast city-wide civil safety alerts, mobilize immediate relief helplines, and triage citizen Emergency SOS tickets.
+                </p>
+            </div>
+            <div class="col-lg-4 text-lg-end">
+                <div class="d-inline-flex gap-2">
+                    <a href="#broadcastForm" class="btn btn-warning fw-bold text-dark px-3 shadow-sm">
+                        <i class="bi bi-megaphone-fill me-1"></i> New Broadcast
+                    </a>
+                    <a href="#sosTickets" class="btn btn-outline-light px-3">
+                        <i class="bi bi-exclamation-triangle-fill me-1"></i> SOS Tickets ({{ sos_complaints|length }})
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Ops Stats -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4 col-sm-6">
+            <div class="stat-badge-box">
+                <div class="text-muted small text-uppercase fw-semibold mb-1">Active Broadcast Status</div>
+                {% if active_alert %}
+                    <span class="badge bg-danger fs-6 px-3 py-2">
+                        <i class="bi bi-circle-fill text-white me-1 beacon-siren" style="width:12px; height:12px; font-size:8px;"></i> LIVE BROADCAST
+                    </span>
+                {% else %}
+                    <span class="badge bg-success fs-6 px-3 py-2">
+                        <i class="bi bi-check-circle-fill me-1"></i> All Clear (Normal Ops)
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-4 col-sm-6">
+            <div class="stat-badge-box">
+                <div class="text-muted small text-uppercase fw-semibold mb-1">Life-Threatening SOS Tickets</div>
+                <h3 class="fw-bold mb-0 {% if sos_complaints|length > 0 %}text-danger{% else %}text-muted{% endif %}">
+                    {{ sos_complaints|length }}
+                </h3>
+            </div>
+        </div>
+        <div class="col-md-4 col-sm-12">
+            <div class="stat-badge-box">
+                <div class="text-muted small text-uppercase fw-semibold mb-1">Emergency Operations Hotline</div>
+                <div class="fw-bold fs-5 text-primary">112 / 108 / 1800-CIVIC-ALERT</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Emergency Broadcast Card -->
+    {% if active_alert %}
+    <div class="card active-alert-card shadow-sm mb-4">
+        <div class="card-body p-4">
+            <div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="beacon-siren">
+                        <i class="bi bi-radioactive"></i>
+                    </div>
+                    <div>
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <span class="badge bg-danger px-2.5 py-1 fw-bold text-uppercase">ACTIVE EMERGENCY</span>
+                            <span class="badge bg-dark px-2.5 py-1">{{ active_alert.severity }}</span>
+                            <span class="text-muted small">
+                                <i class="bi bi-clock me-1"></i> Broadcasted {{ active_alert.created_at.strftime("%b %d, %Y - %H:%M") }}
+                            </span>
+                        </div>
+                        <h3 class="fw-bold text-danger mb-0">{{ active_alert.title }}</h3>
+                    </div>
+                </div>
+
+                <form method="POST" action="{{ url_for('municipal_emergency_deactivate', alert_id=active_alert.id) }}"
+                      onsubmit="return confirm('Are you sure you want to lift this emergency alert? An All-Clear notification will be broadcasted to all citizens.');">
+                    <button type="submit" class="btn btn-success fw-bold px-3 shadow-sm">
+                        <i class="bi bi-check2-circle me-1"></i> Deactivate & Issue All-Clear
+                    </button>
+                </form>
+            </div>
+
+            <div class="p-3 rounded-3 bg-body mb-3 border">
+                <h6 class="fw-bold text-danger mb-2"><i class="bi bi-shield-exclamation me-1"></i> Issued Directives & Public Instructions:</h6>
+                <p class="mb-0 fs-6 text-body-secondary" style="white-space: pre-line;">{{ active_alert.message }}</p>
+            </div>
+
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 pt-2 border-top">
+                <div class="text-body-secondary small">
+                    <strong>Designated Helpline:</strong>
+                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle fs-6 px-3 py-1 ms-2">
+                        <i class="bi bi-telephone-fill me-1"></i> {{ active_alert.helpline }}
+                    </span>
+                </div>
+                <div class="text-muted small">
+                    Dispatched by Municipal Officer <strong>#{{ active_alert.created_by }}</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row g-4 mb-4">
+        <!-- Broadcast Form -->
+        <div class="col-lg-6" id="broadcastForm">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-danger text-white py-3">
+                    <h5 class="fw-bold mb-0">
+                        <i class="bi bi-broadcast me-2"></i> Dispatch Site-Wide Emergency Broadcast
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <p class="text-muted small">
+                        Broadcasting activates an immediate red alert ticker across all citizen and NGO screens, dispatches high-priority in-app push notifications, and pins designated helplines.
+                    </p>
+
+                    <form method="POST" action="{{ url_for('municipal_emergency') }}" onsubmit="return confirm('BROADCAST CONFIRMATION:\nAre you sure you want to send this live emergency alert to all users across the municipality?');">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Emergency Alert Title <span class="text-danger">*</span></label>
+                            <input type="text" name="title" class="form-control form-control-lg"
+                                   placeholder="e.g. Flash Flood Warning - Low-lying Sectors 4 & 5" required>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-sm-6">
+                                <label class="form-label fw-bold">Hazard Severity</label>
+                                <select name="severity" class="form-select" required>
+                                    <option value="Critical Hazard" selected>🔴 Critical Hazard</option>
+                                    <option value="Severe Weather">⛈️ Severe Weather</option>
+                                    <option value="Flash Flood">🌊 Flash Flood / Water Inundation</option>
+                                    <option value="Evacuation Advisory">⚠️ Evacuation Advisory</option>
+                                    <option value="Utility Grid Failure">⚡ Critical Grid / Gas Leak</option>
+                                    <option value="Toxic Hazard">☣️ Toxic Spill / Chemical Hazard</option>
+                                </select>
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="form-label fw-bold">Emergency Helpline</label>
+                                <input type="text" name="helpline" class="form-control"
+                                       value="112 / 108 / 1800-CIVIC-ALERT" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Directives & Public Safety Instructions <span class="text-danger">*</span></label>
+                            <textarea name="message" class="form-control" rows="5"
+                                      placeholder="Provide step-by-step instructions (e.g., stay indoors, avoid underpasses, report live wires to 112)..." required></textarea>
+                            <div class="form-text small">
+                                Clear, concise instructions help citizens stay safe and reduce panic.
+                            </div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-danger btn-lg fw-bold shadow-sm">
+                                <i class="bi bi-send-exclamation-fill me-2"></i> Launch Live Emergency Broadcast
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Historical Alerts -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-dark text-white py-3 d-flex align-items-center justify-content-between">
+                    <h5 class="fw-bold mb-0">
+                        <i class="bi bi-clock-history me-2"></i> Past Emergency Broadcasts
+                    </h5>
+                    <span class="badge bg-secondary">{{ past_alerts|length }} Recorded</span>
+                </div>
+                <div class="card-body p-0">
+                    {% if past_alerts %}
+                        <div class="list-group list-group-flush">
+                            {% for p in past_alerts %}
+                                <div class="list-group-item p-3">
+                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                        <h6 class="fw-bold mb-0 text-dark">{{ p.title }}</h6>
+                                        <span class="badge bg-secondary-subtle text-secondary small">{{ p.severity }}</span>
+                                    </div>
+                                    <p class="small text-muted mb-2 text-truncate" style="max-width: 480px;">{{ p.message }}</p>
+                                    <div class="d-flex align-items-center justify-content-between small text-muted">
+                                        <span><i class="bi bi-calendar-event me-1"></i> {{ p.created_at.strftime("%b %d, %Y %H:%M") }}</span>
+                                        {% if p.resolved_at %}
+                                            <span class="text-success"><i class="bi bi-check-circle me-1"></i> Resolved {{ p.resolved_at.strftime("%H:%M") }}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5 text-muted">
+                            <i class="bi bi-shield-check display-4 text-success opacity-50 mb-2"></i>
+                            <p class="mb-0">No past emergency broadcasts recorded.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Citizen Emergency SOS Tickets -->
+    <div class="card shadow-sm" id="sosTickets">
+        <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+            <div>
+                <h5 class="fw-bold mb-0 text-danger">
+                    <i class="bi bi-exclamation-octagon-fill me-2"></i> Citizen Emergency Hazard SOS Tickets
+                </h5>
+                <small class="text-muted">Tickets flagged with life-threatening severity by reporting citizens.</small>
+            </div>
+            <span class="badge bg-danger fs-6">{{ sos_complaints|length }} Critical</span>
+        </div>
+        <div class="card-body p-0">
+            {% if sos_complaints %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 80px;">Ticket #</th>
+                                <th>Issue & Category</th>
+                                <th>Location & Dept</th>
+                                <th>Reported By</th>
+                                <th>Status</th>
+                                <th>SLA Urgency</th>
+                                <th class="text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for c in sos_complaints %}
+                                <tr>
+                                    <td>
+                                        <span class="fw-bold text-danger">#{{ c.id }}</span>
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold text-dark">{{ c.title }}</div>
+                                        <div class="small">
+                                            <span class="sos-badge-pill"><i class="bi bi-shield-exclamation"></i> SOS EMERGENCY</span>
+                                            <span class="badge bg-secondary-subtle text-secondary ms-1">{{ c.category }}</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="small text-truncate" style="max-width: 220px;" title="{{ c.location }}">
+                                            <i class="bi bi-geo-alt-fill text-danger me-1"></i> {{ c.location }}
+                                        </div>
+                                        <div class="small text-muted">{{ c.department }}</div>
+                                    </td>
+                                    <td>
+                                        <div class="small fw-semibold">{{ c.citizen.username if c.citizen else 'Citizen' }}</div>
+                                        <div class="text-muted small">{{ c.created_at.strftime("%b %d, %H:%M") }}</div>
+                                    </td>
+                                    <td>
+                                        {% if c.status == 'Pending' %}
+                                            <span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i> Pending</span>
+                                        {% elif c.status == 'In Progress' %}
+                                            <span class="badge bg-primary"><i class="bi bi-arrow-repeat me-1"></i> In Progress</span>
+                                        {% elif c.status in ['Completed', 'Verified'] %}
+                                            <span class="badge bg-success"><i class="bi bi-check-circle-fill me-1"></i> {{ c.status }}</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{{ c.status }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if c.is_overdue %}
+                                            <span class="badge bg-danger">OVERDUE</span>
+                                        {% elif c.is_aging %}
+                                            <span class="badge bg-warning text-dark">DUE SOON</span>
+                                        {% else %}
+                                            <span class="badge bg-info-subtle text-info border">WITHIN SLA</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="{{ url_for('municipal_complaints') }}"
+                                           class="btn btn-sm btn-danger fw-bold shadow-sm">
+                                            Triage in Complaints <i class="bi bi-arrow-right ms-1"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-shield-check display-4 text-success opacity-50 mb-2"></i>
+                    <h5>No Active Life-Threatening SOS Tickets</h5>
+                    <p class="mb-0 text-muted small">No citizen complaints are currently flagged as life-threatening emergencies.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+
+<!-- Footer -->
+<footer class="bg-dark text-white text-center py-4 mt-5">
+    <div class="container">
+        <p class="text-white-50 small mb-0">
+            CivicConnect Municipal Emergency Operations & Crisis Response System &copy; 2026. All rights reserved.
+        </p>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

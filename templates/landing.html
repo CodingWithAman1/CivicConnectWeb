@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CivicConnect | Next-Gen AI-Powered Civic Action Platform</title>
+
+    <!-- Bootstrap 5.3 & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <!-- Custom Design System -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <style>
+        .hero-badge-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #eff6ff;
+            color: #1d4ed8;
+            border: 1px solid #bfdbfe;
+            padding: 6px 16px;
+            border-radius: 9999px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .stat-banner {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            padding: 30px 20px;
+            margin-top: -50px;
+            position: relative;
+            z-index: 10;
+        }
+        .stat-item {
+            text-align: center;
+            border-right: 1px solid var(--border-subtle);
+        }
+        .stat-item:last-child {
+            border-right: none;
+        }
+        .ai-pill {
+            background: linear-gradient(135deg, #4f46e5, #06b6d4);
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 9999px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .feature-icon-box {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 16px;
+        }
+        .flow-line {
+            position: relative;
+        }
+        .flow-line::after {
+            content: '';
+            position: absolute;
+            top: 36px;
+            left: 20%;
+            right: 20%;
+            height: 2px;
+            background: #e2e8f0;
+            z-index: 1;
+        }
+        @media (max-width: 991px) {
+            .stat-item {
+                border-right: none;
+                border-bottom: 1px solid var(--border-subtle);
+                padding: 16px 0;
+            }
+            .stat-item:last-child {
+                border-bottom: none;
+            }
+            .flow-line::after {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- Header Navbar -->
+<nav class="navbar navbar-expand-lg sticky-top">
+    <div class="container">
+        <a class="navbar-brand text-primary" href="/">
+            <div class="bg-primary text-white p-2 rounded-3 d-inline-flex align-items-center justify-content-center shadow-sm" style="width: 36px; height: 36px;">
+                <i class="bi bi-buildings-fill"></i>
+            </div>
+            <span class="ms-2 fw-bold text-dark">Civic<span class="text-primary">Connect</span></span>
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle ms-2 small">AI 2.0</span>
+        </a>
+
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navMenu">
+            <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link text-dark" href="#roles">Portals</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-dark" href="#how-it-works">How It Works</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-dark" href="#ai-tech">AI Vision</a>
+                </li>
+            </ul>
+
+            <div class="d-flex align-items-center gap-2">
+                <a href="#roles" class="btn btn-outline-primary btn-sm px-3">
+                    <i class="bi bi-box-arrow-in-right me-1"></i> Sign In
+                </a>
+                <a href="/citizen" class="btn btn-primary btn-sm px-3 shadow-sm">
+                    <i class="bi bi-camera-fill me-1"></i> Report Issue
+                </a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Hero Section -->
+<section class="hero-gradient">
+    <div class="container text-center pt-4 pb-5">
+        
+        <div class="hero-badge-pill mb-4 shadow-sm animate__animated animate__fadeIn">
+            <span class="badge-pulse text-primary"></span>
+            <span class="ms-2">Next-Gen Municipal Intelligence & Civic Engagement</span>
+            <i class="bi bi-stars text-primary"></i>
+        </div>
+
+        <h1 class="display-3 fw-bolder mb-3 text-dark mx-auto" style="max-width: 900px; letter-spacing: -0.03em;">
+            Building Smarter, Cleaner & Safer Cities <span class="text-gradient">Together</span>.
+        </h1>
+
+        <p class="lead text-muted mx-auto mb-5" style="max-width: 680px; font-size: 1.2rem;">
+            A unified municipal intelligence bridge connecting <strong>Citizens</strong>, <strong>NGOs</strong>, and <strong>City Administrators</strong> with multimodal AI hazard analysis and automated SLA resolution.
+        </p>
+
+        <!-- CTA Buttons -->
+        <div class="d-flex justify-content-center align-items-center flex-wrap gap-3 mb-5">
+            <a href="#roles" class="btn btn-primary btn-lg px-4 shadow">
+                <i class="bi bi-person-badge me-2"></i> Access Your Portal
+            </a>
+            <a href="/citizen" class="btn btn-outline-secondary btn-lg px-4 bg-white border">
+                <i class="bi bi-geo-alt-fill text-danger me-2"></i> Report Civic Issue
+            </a>
+        </div>
+
+        <!-- Role Pills Shortcut -->
+        <div class="d-flex justify-content-center align-items-center flex-wrap gap-2 text-muted small">
+            <span>Direct Access:</span>
+            <a href="/citizen" class="badge bg-primary-subtle text-primary border border-primary-subtle text-decoration-none px-3 py-2">
+                <i class="bi bi-person-fill me-1"></i> Citizen
+            </a>
+            <a href="/ngo" class="badge bg-success-subtle text-success border border-success-subtle text-decoration-none px-3 py-2">
+                <i class="bi bi-heart-fill me-1"></i> NGO & Volunteer
+            </a>
+            <a href="/municipal" class="badge bg-dark-subtle text-dark border border-dark-subtle text-decoration-none px-3 py-2">
+                <i class="bi bi-building-fill me-1"></i> Municipal Officer
+            </a>
+        </div>
+
+    </div>
+</section>
+
+<!-- Stats Banner -->
+<div class="container">
+    <div class="stat-banner">
+        <div class="row g-3">
+            <div class="col-md-3 col-6 stat-item">
+                <h2 class="fw-bolder text-primary mb-0">98.4%</h2>
+                <span class="text-muted small fw-medium">SLA Resolution Rate</span>
+            </div>
+            <div class="col-md-3 col-6 stat-item">
+                <h2 class="fw-bolder text-success mb-0">&lt; 2.5s</h2>
+                <span class="text-muted small fw-medium">Gemini AI Hazard Scoring</span>
+            </div>
+            <div class="col-md-3 col-6 stat-item">
+                <h2 class="fw-bolder text-warning mb-0">14,200+</h2>
+                <span class="text-muted small fw-medium">Civic Issues Addressed</span>
+            </div>
+            <div class="col-md-3 col-6 stat-item">
+                <h2 class="fw-bolder text-dark mb-0">300m</h2>
+                <span class="text-muted small fw-medium">Smart Spatial Clustering</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Portals / Roles Section -->
+<section class="py-5 my-5" id="roles">
+    <div class="container py-4">
+        
+        <div class="text-center mb-5">
+            <span class="badge bg-primary-subtle text-primary px-3 py-2 fw-semibold">Tailored Workspaces</span>
+            <h2 class="display-5 fw-bold mt-2">Select Your Portal</h2>
+            <p class="text-muted mx-auto" style="max-width: 580px;">
+                Log in to your dedicated portal to access smart reporting, crowd action, or municipal governance tools.
+            </p>
+        </div>
+
+        <div class="row g-4 align-items-stretch">
+            
+            <!-- Citizen Portal -->
+            <div class="col-lg-4">
+                <div class="role-card-premium h-100" style="--card-accent: #2563eb;">
+                    <div class="icon-bubble bubble-blue">
+                        <i class="bi bi-person-fill"></i>
+                    </div>
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle mb-3">Community First</span>
+                    <h3 class="fw-bold mb-2">Citizen Portal</h3>
+                    <p class="text-muted mb-4 small">
+                        Snap a photo of roads, garbage, or leaks. Let AI identify category & hazard level, track real-time resolution, and endorse nearby issues.
+                    </p>
+                    
+                    <ul class="list-unstyled text-muted small mb-4">
+                        <li class="mb-2"><i class="bi bi-check2-circle text-primary me-2"></i>One-click AI Image Hazard Analysis</li>
+                        <li class="mb-2"><i class="bi bi-check2-circle text-primary me-2"></i>Duplicate Prevention & Community Upvotes</li>
+                        <li class="mb-2"><i class="bi bi-check2-circle text-primary me-2"></i>Before/After Photo Resolution Verification</li>
+                        <li class="mb-2"><i class="bi bi-check2-circle text-primary me-2"></i>Volunteer for Local City Cleanups</li>
+                    </ul>
+
+                    <a href="/citizen" class="btn btn-primary w-100 py-2 shadow-sm">
+                        Enter Citizen Portal <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- NGO Portal -->
+            <div class="col-lg-4">
+                <div class="role-card-premium h-100" style="--card-accent: #10b981;">
+                    <div class="icon-bubble bubble-green">
+                        <i class="bi bi-heart-fill"></i>
+                    </div>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle mb-3">Grassroots Action</span>
+                    <h3 class="fw-bold mb-2">NGO & Volunteers</h3>
+                    <p class="text-muted mb-4 small">
+                        Mobilize local communities, coordinate cleanliness and repair drives, crowdfund critical civic improvements, and verify impact.
+                    </p>
+                    
+                    <ul class="list-unstyled text-muted small mb-4">
+                        <li class="mb-2"><i class="bi bi-check2-circle text-success me-2"></i>Organize Volunteer Drives & Meeting Points</li>
+                        <li class="mb-2"><i class="bi bi-check2-circle text-success me-2"></i>Launch Targeted Crowdfunding Campaigns</li>
+                        <li class="mb-2"><i class="bi bi-check2-circle text-success me-2"></i>Take Civic Issues & Upload Proof of Work</li>
+                        <li class="mb-2"><i class="bi bi-check2-circle text-success me-2"></i>Real-time Impact Analytics & Reports</li>
+                    </ul>
+
+                    <a href="/ngo" class="btn btn-success w-100 py-2 shadow-sm">
+                        Enter NGO Portal <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Municipal Portal -->
+            <div class="col-lg-4">
+                <div class="role-card-premium h-100" style="--card-accent: #0f172a;">
+                    <div class="icon-bubble bubble-dark">
+                        <i class="bi bi-building-fill"></i>
+                    </div>
+                    <span class="badge bg-dark-subtle text-dark border border-dark-subtle mb-3">City Administration</span>
+                    <h3 class="fw-bold mb-2">Municipal Authority</h3>
+                    <p class="text-muted mb-4 small">
+                        Command center for department routing, geographic heatmap clustering, SLA escalation alerts, and multimodal AI work proof verification.
+                    </p>
+                    
+                    <ul class="list-unstyled text-muted small mb-4">
+                        <li class="mb-2"><i class="bi bi-check2-circle text-info me-2"></i>Dynamic Heatmap & Hazard Density Views</li>
+                        <li class="mb-2"><i class="bi bi-check2-circle text-info me-2"></i>Category-based SLA Deadlines & Aging Alerts</li>
+                        <li class="mb-2"><i class="bi bi-check2-circle text-info me-2"></i>Gemini Multimodal Before/After Verification</li>
+                        <li class="mb-2"><i class="bi bi-check2-circle text-info me-2"></i>AI Public Broadcast & Announcement Writer</li>
+                    </ul>
+
+                    <a href="/municipal" class="btn btn-dark w-100 py-2 shadow-sm">
+                        Enter Municipal Portal <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="py-5 bg-white border-top border-bottom" id="how-it-works">
+    <div class="container py-4">
+        
+        <div class="text-center mb-5">
+            <span class="badge bg-primary-subtle text-primary px-3 py-2 fw-semibold">Seamless Lifecycle</span>
+            <h2 class="display-6 fw-bold mt-2">How CivicConnect Works</h2>
+            <p class="text-muted mx-auto" style="max-width: 550px;">
+                Transparent civic governance from photo upload to citizen verification.
+            </p>
+        </div>
+
+        <div class="row g-4 flow-line position-relative">
+            
+            <div class="col-lg-3 col-md-6 text-center position-relative" style="z-index: 2;">
+                <div class="p-4 bg-white rounded-4 border shadow-sm h-100">
+                    <div class="feature-icon-box bg-primary-subtle text-primary">
+                        <i class="bi bi-camera-fill"></i>
+                    </div>
+                    <span class="badge bg-primary text-white mb-2">Step 1</span>
+                    <h5 class="fw-bold">Report & AI Scan</h5>
+                    <p class="text-muted small mb-0">Citizen captures an issue photo. Gemini Vision auto-detects title, category, hazard severity, and department.</p>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-6 text-center position-relative" style="z-index: 2;">
+                <div class="p-4 bg-white rounded-4 border shadow-sm h-100">
+                    <div class="feature-icon-box bg-warning-subtle text-warning">
+                        <i class="bi bi-layers-half"></i>
+                    </div>
+                    <span class="badge bg-warning text-dark mb-2">Step 2</span>
+                    <h5 class="fw-bold">Cluster & Route</h5>
+                    <p class="text-muted small mb-0">Spatial algorithms detect duplicates within 300 meters. The ticket is queued to the responsible municipal department.</p>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-6 text-center position-relative" style="z-index: 2;">
+                <div class="p-4 bg-white rounded-4 border shadow-sm h-100">
+                    <div class="feature-icon-box bg-success-subtle text-success">
+                        <i class="bi bi-tools"></i>
+                    </div>
+                    <span class="badge bg-success text-white mb-2">Step 3</span>
+                    <h5 class="fw-bold">Resolve & Proof</h5>
+                    <p class="text-muted small mb-0">City crews or local NGOs take the task, execute the repair, and upload photographic resolution proof.</p>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-6 text-center position-relative" style="z-index: 2;">
+                <div class="p-4 bg-white rounded-4 border shadow-sm h-100">
+                    <div class="feature-icon-box bg-info-subtle text-info">
+                        <i class="bi bi-patch-check-fill"></i>
+                    </div>
+                    <span class="badge bg-info text-dark mb-2">Step 4</span>
+                    <h5 class="fw-bold">Verify & Close</h5>
+                    <p class="text-muted small mb-0">Multimodal AI cross-checks before & after images. The citizen confirms resolution satisfaction to close the ticket.</p>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</section>
+
+<!-- AI Features Spotlight -->
+<section class="py-5 my-5" id="ai-tech">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6">
+                <span class="ai-pill mb-3 d-inline-block">Powered by Gemini Multimodal</span>
+                <h2 class="display-6 fw-bold mb-3">AI That Sees, Categorizes & Verifies City Infrastructure</h2>
+                <p class="text-muted mb-4">
+                    CivicConnect removes bureaucratic delays. Our integrated AI models assist citizens and municipal officers at every step of the complaint lifecycle.
+                </p>
+
+                <div class="d-flex align-items-start gap-3 mb-3">
+                    <div class="bg-primary-subtle text-primary p-2 rounded-3 fs-4">
+                        <i class="bi bi-lightning-charge-fill"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold mb-1">Instant Hazard & Severity Scoring</h6>
+                        <p class="text-muted small mb-0">Distinguishes routine potholes from critical safety hazards, triggering immediate emergency municipal alerts.</p>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-start gap-3 mb-3">
+                    <div class="bg-success-subtle text-success p-2 rounded-3 fs-4">
+                        <i class="bi bi-check-all"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold mb-1">Visual Proof Cross-Verification</h6>
+                        <p class="text-muted small mb-0">Compares before and after images with deep image inspection to confirm the repair is genuine.</p>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-start gap-3">
+                    <div class="bg-info-subtle text-info p-2 rounded-3 fs-4">
+                        <i class="bi bi-megaphone-fill"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold mb-1">AI Public Announcement Generator</h6>
+                        <p class="text-muted small mb-0">Empowers authorities to draft professional, calm, emergency broadcast notices in seconds.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-lg rounded-4 overflow-hidden p-4 bg-white border">
+                    <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-3">
+                        <span class="fw-bold text-dark"><i class="bi bi-robot text-primary me-2"></i>Live AI Vision Diagnostic</span>
+                        <span class="badge bg-success-subtle text-success">Active</span>
+                    </div>
+
+                    <div class="ai-scan-box text-center mb-3">
+                        <i class="bi bi-shield-check display-3 text-primary mb-2 d-block"></i>
+                        <span class="fw-bold text-dark d-block">Automated Image Validation Pipeline</span>
+                        <small class="text-muted">Real-time classification, department matching & duplicate checks</small>
+                    </div>
+
+                    <div class="bg-light p-3 rounded-3 small text-muted">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Image Classification:</span>
+                            <strong class="text-dark">Pothole (Road Infrastructure)</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Severity Detection:</span>
+                            <span class="badge bg-warning text-dark">High (Traffic Obstruction)</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Auto-Routing:</span>
+                            <strong class="text-primary">Roads & Transport Department</strong>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Target SLA:</span>
+                            <strong class="text-danger">4 Days (Expedited)</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="bg-dark text-white pt-5 pb-4 mt-5 border-top border-secondary border-opacity-25">
+    <div class="container">
+        <div class="row g-4 mb-4">
+            <div class="col-lg-4">
+                <h5 class="fw-bold mb-3 d-flex align-items-center gap-2">
+                    <i class="bi bi-buildings-fill text-primary"></i> CivicConnect
+                </h5>
+                <p class="text-white-50 small mb-3">
+                    Empowering citizens, mobilizing NGOs, and optimizing municipal services through transparent, real-time AI technology.
+                </p>
+                <div class="text-white-50 small">
+                    &copy; 2026 CivicConnect Municipal Systems. All rights reserved.
+                </div>
+            </div>
+            
+            <div class="col-lg-2 col-6">
+                <h6 class="fw-bold text-white mb-3">Portals</h6>
+                <ul class="list-unstyled small text-white-50">
+                    <li class="mb-2"><a href="/citizen" class="text-white-50 text-decoration-none hover-white">Citizen Portal</a></li>
+                    <li class="mb-2"><a href="/ngo" class="text-white-50 text-decoration-none hover-white">NGO & Drives</a></li>
+                    <li class="mb-2"><a href="/municipal" class="text-white-50 text-decoration-none hover-white">Municipal Authority</a></li>
+                </ul>
+            </div>
+
+            <div class="col-lg-2 col-6">
+                <h6 class="fw-bold text-white mb-3">Features</h6>
+                <ul class="list-unstyled small text-white-50">
+                    <li class="mb-2"><a href="/citizen" class="text-white-50 text-decoration-none">Report Issue</a></li>
+                    <li class="mb-2"><a href="/citizen" class="text-white-50 text-decoration-none">Nearby Heatmap</a></li>
+                    <li class="mb-2"><a href="/ngo" class="text-white-50 text-decoration-none">Crowdfunding</a></li>
+                </ul>
+            </div>
+
+            <div class="col-lg-4">
+                <h6 class="fw-bold text-white mb-3">Civic Trust & Standards</h6>
+                <p class="text-white-50 small mb-2">
+                    Compliant with Open Civic Data standards. GPS accuracy ensured by Leaflet. Real-time vision analytics backed by Google Gemini.
+                </p>
+                <div class="badge bg-primary-subtle text-primary">
+                    <i class="bi bi-shield-lock-fill me-1"></i> SSL Encrypted & Secure
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

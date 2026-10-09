@@ -1,0 +1,982 @@
+/* ==========================================================================
+   CivicConnect - Comprehensive Premium Design System (Light & Dark Mode)
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+/* Light Mode Tokens (Default) */
+:root {
+    --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    
+    /* Primary Civic Theme */
+    --primary: #2563eb;
+    --primary-hover: #1d4ed8;
+    --primary-subtle: #eff6ff;
+    --primary-glow: rgba(37, 99, 235, 0.25);
+    
+    /* Role-based Themes */
+    --citizen-color: #2563eb;
+    --ngo-color: #10b981;
+    --ngo-subtle: #ecfdf5;
+    --municipal-color: #0f172a;
+    --municipal-accent: #38bdf8;
+    
+    /* Accents & Status */
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --info: #06b6d4;
+    
+    /* Neutrals - Light Mode */
+    --bg-page: #f8fafc;
+    --bg-surface: #ffffff;
+    --bg-elevated: #ffffff;
+    --border-subtle: #e2e8f0;
+    --border-medium: #cbd5e1;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --text-light: #94a3b8;
+    
+    /* Shadows */
+    --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.03);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.09), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+    --shadow-glow: 0 0 25px rgba(37, 99, 235, 0.18);
+    
+    /* Radii */
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 18px;
+    --radius-xl: 24px;
+    --radius-pill: 9999px;
+    
+    /* Transitions */
+    --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Dark Mode Tokens */
+[data-theme="dark"], [data-bs-theme="dark"] {
+    --bg-page: #090d16;
+    --bg-surface: #111827;
+    --bg-elevated: #1e293b;
+    --border-subtle: #1e293b;
+    --border-medium: #334155;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --text-light: #64748b;
+    
+    --primary-subtle: rgba(37, 99, 235, 0.15);
+    --ngo-subtle: rgba(16, 185, 129, 0.15);
+    
+    --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.55);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.6);
+}
+
+/* Base Elements */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--bg-page) !important;
+    font-family: var(--font-sans);
+    color: var(--text-main);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-sans);
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    color: var(--text-main);
+}
+
+/* Dark Mode Overrides for text and background helpers */
+[data-theme="dark"] body,
+[data-theme="dark"] body.bg-light,
+[data-bs-theme="dark"] body,
+[data-bs-theme="dark"] body.bg-light {
+    background-color: var(--bg-page) !important;
+    background-image: none !important;
+    color: var(--text-main) !important;
+}
+
+[data-theme="dark"] .text-dark,
+[data-bs-theme="dark"] .text-dark {
+    color: var(--text-main) !important;
+}
+
+[data-theme="dark"] .text-muted,
+[data-bs-theme="dark"] .text-muted {
+    color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .bg-white,
+[data-bs-theme="dark"] .bg-white {
+    background-color: var(--bg-surface) !important;
+}
+
+[data-theme="dark"] .bg-light,
+[data-bs-theme="dark"] .bg-light {
+    background-color: var(--bg-page) !important;
+}
+
+[data-theme="dark"] .border,
+[data-bs-theme="dark"] .border {
+    border-color: var(--border-subtle) !important;
+}
+
+/* Button High Contrast Assurance */
+.btn-warning {
+    color: #0f172a !important;
+    background-color: #f59e0b;
+    border-color: #f59e0b;
+    font-weight: 600;
+}
+.btn-warning:hover {
+    color: #0f172a !important;
+    background-color: #d97706;
+    border-color: #d97706;
+}
+
+.btn-info {
+    color: #0f172a !important;
+    background-color: #06b6d4;
+    border-color: #06b6d4;
+    font-weight: 600;
+}
+.btn-info:hover {
+    color: #0f172a !important;
+    background-color: #0891b2;
+    border-color: #0891b2;
+}
+
+/* Dropdown Menus */
+.dropdown-menu {
+    background-color: var(--bg-surface) !important;
+    border-color: var(--border-subtle) !important;
+    color: var(--text-main) !important;
+    box-shadow: var(--shadow-lg);
+}
+
+.dropdown-item {
+    color: var(--text-main) !important;
+}
+
+.dropdown-item:hover, .dropdown-item:focus {
+    background-color: var(--primary-subtle) !important;
+    color: var(--primary) !important;
+}
+
+/* ==========================================================================
+   Navigation (Clear Contrast Guaranteed in both modes)
+   ========================================================================== */
+.navbar {
+    padding: 12px 0;
+    transition: var(--transition);
+    z-index: 1000;
+}
+
+/* Public / Neutral Navbar */
+.navbar:not(.navbar-dark):not([class*="bg-primary"]):not([class*="bg-success"]):not([class*="bg-dark"]) {
+    background: rgba(255, 255, 255, 0.92) !important;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+[data-theme="dark"] .navbar:not(.navbar-dark):not([class*="bg-primary"]):not([class*="bg-success"]):not([class*="bg-dark"]) {
+    background: rgba(17, 24, 39, 0.92) !important;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+/* Role-themed Navbars (Always rich gradient background + pure white text) */
+.navbar-dark.bg-primary,
+nav[class*="bg-primary"] {
+    background: linear-gradient(135deg, #1e40af 0%, #2563eb 60%, #3b82f6 100%) !important;
+}
+
+.navbar-dark.bg-success,
+nav[class*="bg-success"] {
+    background: linear-gradient(135deg, #065f46 0%, #059669 60%, #10b981 100%) !important;
+}
+
+.navbar-dark.bg-dark,
+nav[class*="bg-dark"] {
+    background: linear-gradient(135deg, #090d16 0%, #0f172a 70%, #1e293b 100%) !important;
+}
+
+/* Text inside role navbars is ALWAYS crisp white */
+.navbar-dark .navbar-brand,
+.navbar-dark .nav-link,
+.navbar-dark .navbar-text,
+.navbar-dark span,
+nav[class*="bg-primary"] .navbar-brand,
+nav[class*="bg-primary"] .nav-link,
+nav[class*="bg-primary"] span,
+nav[class*="bg-success"] .navbar-brand,
+nav[class*="bg-success"] .nav-link,
+nav[class*="bg-success"] span,
+nav[class*="bg-dark"] .navbar-brand,
+nav[class*="bg-dark"] .nav-link,
+nav[class*="bg-dark"] span {
+    color: #ffffff !important;
+}
+
+.navbar-dark .nav-link:hover,
+nav[class*="bg-primary"] .nav-link:hover,
+nav[class*="bg-success"] .nav-link:hover,
+nav[class*="bg-dark"] .nav-link:hover {
+    color: rgba(255, 255, 255, 0.85) !important;
+}
+
+.navbar-brand {
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* ==========================================================================
+   Cards & Content Surfaces
+   ========================================================================== */
+.card {
+    background-color: var(--bg-surface) !important;
+    color: var(--text-main);
+    border-color: var(--border-subtle) !important;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.card-header {
+    border-bottom-color: var(--border-subtle) !important;
+}
+
+.card-footer {
+    background-color: var(--bg-surface) !important;
+    border-top-color: var(--border-subtle) !important;
+    color: var(--text-muted);
+}
+
+.role-card-premium {
+    position: relative;
+    border-radius: var(--radius-xl);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    padding: 38px 30px;
+    transition: var(--transition);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+}
+
+.role-card-premium:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-xl);
+}
+
+.stat-banner {
+    background: var(--bg-surface) !important;
+    border: 1px solid var(--border-subtle);
+    border-radius: 20px;
+    box-shadow: var(--shadow-md);
+    padding: 30px 20px;
+}
+
+.action-card-grid {
+    background: var(--bg-surface) !important;
+    border: 1px solid var(--border-subtle);
+}
+
+.muni-stat-card {
+    background: var(--bg-surface) !important;
+    border: 1px solid var(--border-subtle);
+}
+
+/* ==========================================================================
+   Forms, Inputs & Contrast Assurance
+   ========================================================================== */
+.form-control, .form-select {
+    border-radius: var(--radius-md);
+    border: 1.5px solid var(--border-medium);
+    padding: 12px 16px;
+    font-size: 0.95rem;
+    transition: var(--transition);
+    background-color: var(--bg-surface) !important;
+    color: var(--text-main) !important;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px var(--primary-glow);
+    outline: none;
+    background-color: var(--bg-surface) !important;
+    color: var(--text-main) !important;
+}
+
+.form-control::placeholder {
+    color: var(--text-light);
+}
+
+.form-label {
+    font-weight: 600;
+    font-size: 0.88rem;
+    color: var(--text-main);
+    margin-bottom: 6px;
+}
+
+.input-group-text {
+    background-color: var(--bg-page) !important;
+    color: var(--text-muted) !important;
+    border-color: var(--border-medium) !important;
+}
+
+/* ==========================================================================
+   Tables, Lists & Modals
+   ========================================================================== */
+.table {
+    color: var(--text-main) !important;
+    border-color: var(--border-subtle) !important;
+}
+
+.table th, .table td {
+    background-color: transparent !important;
+    color: var(--text-main);
+    border-color: var(--border-subtle) !important;
+}
+
+.table-light, thead.table-light th {
+    background-color: var(--bg-page) !important;
+    color: var(--text-main) !important;
+    border-color: var(--border-subtle) !important;
+}
+
+.list-group-item {
+    background-color: var(--bg-surface) !important;
+    color: var(--text-main) !important;
+    border-color: var(--border-subtle) !important;
+}
+
+.modal-content {
+    background-color: var(--bg-surface) !important;
+    color: var(--text-main) !important;
+    border: 1px solid var(--border-subtle) !important;
+}
+
+/* ==========================================================================
+   Badges, Steppers & Sub-boxes
+   ========================================================================== */
+.badge {
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: var(--radius-pill);
+}
+
+[data-theme="dark"] .bg-secondary-subtle,
+[data-bs-theme="dark"] .bg-secondary-subtle {
+    background-color: #1e293b !important;
+    color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] .bg-primary-subtle,
+[data-bs-theme="dark"] .bg-primary-subtle {
+    background-color: rgba(37, 99, 235, 0.2) !important;
+    color: #93c5fd !important;
+}
+
+[data-theme="dark"] .bg-success-subtle,
+[data-bs-theme="dark"] .bg-success-subtle {
+    background-color: rgba(16, 185, 129, 0.2) !important;
+    color: #6ee7b7 !important;
+}
+
+[data-theme="dark"] .bg-warning-subtle,
+[data-bs-theme="dark"] .bg-warning-subtle {
+    background-color: rgba(245, 158, 11, 0.2) !important;
+    color: #fde68a !important;
+}
+
+[data-theme="dark"] .bg-danger-subtle,
+[data-bs-theme="dark"] .bg-danger-subtle {
+    background-color: rgba(239, 68, 68, 0.2) !important;
+    color: #fca5a5 !important;
+}
+
+/* AI Upload & Scan Box */
+.ai-box, .ai-scan-box {
+    background: #f8faff;
+    border: 1.5px dashed #93c5fd;
+    border-radius: var(--radius-lg);
+    padding: 25px;
+    transition: var(--transition);
+}
+
+[data-theme="dark"] .ai-box,
+[data-theme="dark"] .ai-scan-box {
+    background: #141e33 !important;
+    border-color: #2563eb !important;
+    color: var(--text-main);
+}
+
+/* Stepper Box in My Complaints */
+.stepper-box {
+    background: var(--bg-page) !important;
+    border-color: var(--border-subtle) !important;
+}
+
+.step-item {
+    background: transparent !important;
+}
+
+/* Pulse animation */
+.badge-pulse {
+    position: relative;
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.badge-pulse::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: currentColor;
+    animation: pulseGlow 1.5s infinite;
+}
+
+@keyframes pulseGlow {
+    0% { transform: scale(1); opacity: 0.9; }
+    50% { transform: scale(2.4); opacity: 0; }
+    100% { transform: scale(1); opacity: 0; }
+}
+
+/* ==========================================================================
+   TOP-NOTCH DESIGNER THEME SWITCH WIDGET
+   ========================================================================== */
+.civic-theme-widget {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1.5px solid var(--border-medium);
+    border-radius: 9999px;
+    padding: 5px 8px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12), 0 0 15px rgba(37, 99, 235, 0.15);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    user-select: none;
+}
+
+[data-theme="dark"] .civic-theme-widget {
+    background: rgba(17, 24, 39, 0.9);
+    border-color: #334155;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5), 0 0 20px rgba(56, 189, 248, 0.2);
+}
+
+.civic-theme-widget:hover {
+    transform: translateY(-3px) scale(1.04);
+}
+
+.civic-theme-switch-track {
+    width: 58px;
+    height: 30px;
+    background: #e2e8f0;
+    border-radius: 9999px;
+    position: relative;
+    transition: background 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 6px;
+    font-size: 14px;
+}
+
+[data-theme="dark"] .civic-theme-switch-track {
+    background: #1e293b;
+}
+
+.civic-theme-switch-thumb {
+    position: absolute;
+    top: 3px;
+    left: 4px;
+    width: 24px;
+    height: 24px;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    border-radius: 50%;
+    transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 13px;
+}
+
+[data-theme="dark"] .civic-theme-switch-thumb {
+    left: 30px;
+    background: linear-gradient(135deg, #38bdf8, #2563eb);
+    transform: rotate(360deg);
+}
+
+.civic-theme-label {
+    font-size: 0.82rem;
+    font-weight: 700;
+    margin-left: 10px;
+    margin-right: 6px;
+    letter-spacing: -0.01em;
+    color: var(--text-main);
+}
+
+.civic-theme-widget:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 3px;
+}
+
+@media (max-width: 576px) {
+    .civic-theme-widget {
+        bottom: 18px;
+        right: 16px;
+        padding: 4px 6px;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+    }
+    .civic-theme-switch-track {
+        width: 52px;
+        height: 28px;
+        font-size: 12px;
+    }
+    .civic-theme-switch-thumb {
+        width: 22px;
+        height: 22px;
+        font-size: 11px;
+    }
+    [data-theme="dark"] .civic-theme-switch-thumb {
+        left: 26px;
+    }
+}
+
+/* ==========================================================================
+   Leaflet Maps Dark Mode Integration
+   ========================================================================== */
+[data-theme="dark"] .leaflet-layer,
+[data-theme="dark"] .leaflet-control-zoom-in,
+[data-theme="dark"] .leaflet-control-zoom-out,
+[data-theme="dark"] .leaflet-control-attribution {
+    filter: brightness(0.85) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) brightness(0.75);
+}
+
+[data-theme="dark"] .leaflet-popup-content-wrapper,
+[data-theme="dark"] .leaflet-popup-tip {
+    background: #1e293b !important;
+    color: #f8fafc !important;
+    border: 1px solid #334155;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="dark"] .leaflet-popup-content {
+    color: #f8fafc !important;
+}
+
+/* ==========================================================================
+   Real-Time In-App Notification Center & Bell Drawer
+   ========================================================================== */
+
+.civic-notif-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
+.civic-notif-bell-btn {
+    position: relative;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: var(--transition);
+    font-size: 1.15rem;
+    padding: 0;
+}
+
+.civic-notif-bell-btn:hover {
+    background: rgba(255, 255, 255, 0.28);
+    transform: translateY(-1px);
+    color: #ffffff;
+}
+
+/* On light navbars */
+.navbar-light .civic-notif-bell-btn,
+.bg-light .civic-notif-bell-btn {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-medium);
+    color: var(--text-main);
+}
+.navbar-light .civic-notif-bell-btn:hover,
+.bg-light .civic-notif-bell-btn:hover {
+    background: var(--bg-elevated);
+    color: var(--primary);
+}
+
+.civic-notif-badge {
+    position: absolute;
+    top: -4px;
+    right: -6px;
+    background: #ef4444;
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 700;
+    min-width: 18px;
+    height: 18px;
+    line-height: 18px;
+    padding: 0 5px;
+    border-radius: 9px;
+    text-align: center;
+    box-shadow: 0 2px 5px rgba(239, 68, 68, 0.4);
+    pointer-events: none;
+    animation: notifBadgePulse 2.5s infinite;
+}
+
+@keyframes notifBadgePulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.15); box-shadow: 0 0 10px rgba(239, 68, 68, 0.7); }
+}
+
+.civic-notif-drawer {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 10px);
+    width: 380px;
+    max-width: calc(100vw - 28px);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.25);
+    z-index: 99995;
+    overflow: hidden;
+    display: none;
+    animation: notifDrawerFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.civic-notif-drawer.show {
+    display: block;
+}
+
+@keyframes notifDrawerFadeIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.civic-notif-drawer-header {
+    padding: 14px 18px;
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.civic-notif-drawer-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-main);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.civic-notif-drawer-body {
+    max-height: 350px;
+    overflow-y: auto;
+}
+
+.civic-notif-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-subtle);
+    text-decoration: none;
+    color: var(--text-main);
+    transition: background 0.18s ease;
+    cursor: pointer;
+}
+
+.civic-notif-item:hover {
+    background: var(--bg-elevated);
+    color: var(--text-main);
+}
+
+.civic-notif-item.unread {
+    background: rgba(37, 99, 235, 0.05);
+}
+
+[data-theme="dark"] .civic-notif-item.unread {
+    background: rgba(59, 130, 246, 0.12);
+}
+
+.civic-notif-item.is-emergency {
+    border-left: 4px solid #ef4444;
+    background: rgba(239, 68, 68, 0.06);
+}
+
+.civic-notif-item-icon {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+}
+
+.civic-notif-item-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.civic-notif-item-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin-bottom: 2px;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+}
+
+.civic-notif-item-text {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+    line-height: 1.35;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.civic-notif-item-time {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+}
+
+.civic-notif-drawer-footer {
+    padding: 10px 16px;
+    background: var(--bg-surface);
+    border-top: 1px solid var(--border-subtle);
+    text-align: center;
+}
+
+.civic-notif-drawer-footer a {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--primary);
+    text-decoration: none;
+}
+
+.civic-notif-drawer-footer a:hover {
+    text-decoration: underline;
+}
+
+/* ==========================================================================
+   Site-Wide Sticky Emergency Banner & Disaster SOS Mode
+   ========================================================================== */
+
+.civic-emergency-banner {
+    position: sticky;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 99990;
+    background: linear-gradient(90deg, #991b1b 0%, #dc2626 50%, #991b1b 100%);
+    color: #ffffff;
+    padding: 10px 16px;
+    box-shadow: 0 4px 20px rgba(220, 38, 38, 0.45);
+    border-bottom: 2px solid #f87171;
+    animation: emergencyBannerPulse 2.5s infinite ease-in-out;
+}
+
+@keyframes emergencyBannerPulse {
+    0%, 100% { box-shadow: 0 4px 18px rgba(220, 38, 38, 0.45); }
+    50% { box-shadow: 0 6px 28px rgba(239, 68, 68, 0.75); }
+}
+
+.civic-emergency-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+    max-width: 1320px;
+    margin: 0 auto;
+}
+
+.civic-emergency-siren-box {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.civic-emergency-siren-icon {
+    font-size: 1.4rem;
+    animation: sirenSpin 0.9s infinite alternate;
+}
+
+@keyframes sirenSpin {
+    from { transform: rotate(-10deg) scale(0.95); filter: drop-shadow(0 0 2px #fff); }
+    to { transform: rotate(10deg) scale(1.15); filter: drop-shadow(0 0 8px #fef08a); }
+}
+
+.civic-emergency-title {
+    font-size: 0.95rem;
+    font-weight: 800;
+    letter-spacing: 0.2px;
+    color: #ffffff;
+    margin: 0;
+}
+
+.civic-emergency-badge {
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 0.72rem;
+    padding: 3px 8px;
+    border-radius: 6px;
+    text-transform: uppercase;
+}
+
+.civic-emergency-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.civic-emergency-helpline-btn {
+    background: #ffffff;
+    color: #b91c1c !important;
+    font-weight: 800;
+    font-size: 0.8rem;
+    padding: 5px 14px;
+    border-radius: 20px;
+    border: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: transform 0.2s ease;
+}
+
+.civic-emergency-helpline-btn:hover {
+    transform: scale(1.05);
+    background: #fef2f2;
+}
+
+.civic-emergency-expand-btn {
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    font-size: 0.78rem;
+    font-weight: 600;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    padding: 4px 12px;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.civic-emergency-expand-btn:hover {
+    background: rgba(255, 255, 255, 0.32);
+}
+
+.civic-emergency-collapse-btn {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 1.1rem;
+    cursor: pointer;
+    padding: 2px 6px;
+    line-height: 1;
+    border-radius: 6px;
+}
+
+.civic-emergency-collapse-btn:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.civic-emergency-details-panel {
+    width: 100%;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px dashed rgba(255, 255, 255, 0.35);
+    font-size: 0.85rem;
+    color: #fef2f2;
+    line-height: 1.45;
+    display: none;
+}
+
+.civic-emergency-details-panel.show {
+    display: block;
+}
+
+/* Docked SOS Pill when banner collapsed */
+.civic-emergency-docked-pill {
+    position: fixed;
+    bottom: 85px;
+    right: 24px;
+    z-index: 99980;
+    background: linear-gradient(135deg, #b91c1c, #ef4444);
+    color: #ffffff;
+    padding: 8px 16px;
+    border-radius: 30px;
+    box-shadow: 0 4px 18px rgba(220, 38, 38, 0.55);
+    border: 1px solid #fca5a5;
+    font-size: 0.82rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    animation: dockedPulse 2s infinite;
+}
+
+@keyframes dockedPulse {
+    0%, 100% { transform: translateY(0); box-shadow: 0 4px 18px rgba(220, 38, 38, 0.55); }
+    50% { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(220, 38, 38, 0.8); }
+}
+
+@media (max-width: 576px) {
+    .civic-emergency-docked-pill {
+        bottom: 74px;
+        right: 16px;
+        padding: 6px 12px;
+        font-size: 0.75rem;
+    }
+}

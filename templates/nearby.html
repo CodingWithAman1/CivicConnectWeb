@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Nearby Issues | CivicConnect</title>
+
+
+    <!-- Bootstrap -->
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+
+
+    <!-- Bootstrap Icons -->
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.css"
+          rel="stylesheet">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <style>
+
+        .complaint-card {
+            transition: 0.25s;
+        }
+
+        .complaint-card:hover {
+            transform: translateY(-4px);
+        }
+
+    </style>
+
+</head>
+
+
+<body class="bg-light">
+
+
+<!-- ===================================================== -->
+<!-- NAVBAR -->
+<!-- ===================================================== -->
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-{% if session.get('role') == 'ngo' %}success{% elif session.get('role') == 'municipal' %}dark{% else %}primary{% endif %} shadow">
+
+    <div class="container">
+
+
+        <a href="{{ url_for('dashboard') }}"
+           class="navbar-brand fw-bold">
+
+            <i class="bi bi-buildings-fill"></i>
+
+            CivicConnect
+
+        </a>
+
+
+        <div>
+
+            <span class="text-white me-3">
+
+                <i class="bi bi-person-circle"></i>
+
+                {{ username }}
+
+            </span>
+
+
+            <a href="{{ url_for('dashboard') }}"
+               class="btn btn-light btn-sm">
+
+                Dashboard
+
+            </a>
+
+        </div>
+
+
+    </div>
+
+</nav>
+
+
+
+<!-- ===================================================== -->
+<!-- MAIN -->
+<!-- ===================================================== -->
+
+<div class="container py-5">
+
+
+    <!-- ================================================= -->
+    <!-- PAGE HEADER -->
+    <!-- ================================================= -->
+
+    <div class="text-center mb-5">
+
+
+        <h2 class="fw-bold">
+
+            <i class="bi bi-geo-alt-fill text-danger"></i>
+
+            Nearby Issues
+
+        </h2>
+
+
+        <p class="text-muted">
+
+            Find complaints within 20 km of your current location.
+
+        </p>
+
+
+        <!-- LOCATION BUTTON -->
+
+        <button class="btn btn-primary btn-lg"
+                onclick="getLocation()">
+
+            <i class="bi bi-crosshair"></i>
+
+            Use My Current Location
+
+        </button>
+
+
+
+        <!-- ================================================= -->
+        <!-- SORT DROPDOWN -->
+        <!-- ================================================= -->
+
+        <div class="dropdown mt-3">
+
+
+            <button class="btn btn-outline-primary dropdown-toggle"
+                    type="button"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false">
+
+                <i class="bi bi-sort-down"></i>
+
+                Sort Issues
+
+            </button>
+
+
+            <ul class="dropdown-menu">
+
+
+                <!-- OVERDUE -->
+
+                <li>
+
+                    <button class="dropdown-item"
+                            onclick="sortIssues('overdue')">
+
+                        🔴 Overdue First
+
+                    </button>
+
+                </li>
+
+
+                <li>
+
+                    <hr class="dropdown-divider">
+
+                </li>
+
+
+                <!-- PRIORITY -->
+
+                <li>
+
+                    <button class="dropdown-item"
+                            onclick="sortIssues('priority')">
+
+                        🔥 Highest Priority
+
+                    </button>
+
+                </li>
+
+
+                <!-- DISTANCE -->
+
+                <li>
+
+                    <button class="dropdown-item"
+                            onclick="sortIssues('distance')">
+
+                        📍 Nearest First
+
+                    </button>
+
+                </li>
+
+
+                <!-- REPORTS -->
+
+                <li>
+
+                    <button class="dropdown-item"
+                            onclick="sortIssues('reports')">
+
+                        👥 Most Reported
+
+                    </button>
+
+                </li>
+
+
+                <!-- NEWEST -->
+
+                <li>
+
+                    <button class="dropdown-item"
+                            onclick="sortIssues('newest')">
+
+                        🆕 Newest
+
+                    </button>
+
+                </li>
+
+
+                <!-- OLDEST -->
+
+                <li>
+
+                    <button class="dropdown-item"
+                            onclick="sortIssues('oldest')">
+
+                        🕐 Oldest
+
+                    </button>
+
+                </li>
+
+
+                <li>
+
+                    <hr class="dropdown-divider">
+
+                </li>
+
+
+                <!-- CATEGORY A-Z -->
+
+                <li>
+
+                    <button class="dropdown-item"
+                            onclick="sortIssues('category_az')">
+
+                        🔤 Category A–Z
+
+                    </button>
+
+                </li>
+
+
+                <!-- CATEGORY Z-A -->
+
+                <li>
+
+                    <button class="dropdown-item"
+                            onclick="sortIssues('category_za')">
+
+                        🔤 Category Z–A
+
+                    </button>
+
+                </li>
+
+
+                <!-- STATUS -->
+
+                <li>
+
+                    <button class="dropdown-item"
+                            onclick="sortIssues('status')">
+
+                        🚦 Status
+
+                    </button>
+
+                </li>
+
+
+            </ul>
+
+
+        </div>
+
+
+    </div>
+
+
+
+    <!-- ================================================= -->
+    <!-- LOCATION FORM -->
+    <!-- ================================================= -->
+
+    <form id="locationForm"
+          method="POST">
+
+
+        <input type="hidden"
+               id="latitude"
+               name="latitude">
+
+
+        <input type="hidden"
+               id="longitude"
+               name="longitude">
+
+
+    </form>
+
+
+
+    <!-- ================================================= -->
+    <!-- COMPLAINTS -->
+    <!-- ================================================= -->
+
+    {% if complaints %}
+
+
+    <div class="row"
+         id="complaintsContainer">
+
+
+        {% for complaint in complaints %}
+
+
+        <!-- ================================================= -->
+        <!-- COMPLAINT CARD -->
+        <!-- ================================================= -->
+
+        <div class="col-md-6 col-lg-4 mb-4 complaint-card"
+
+             data-priority="{{ complaint.priority }}"
+
+             data-distance="{{ complaint.distance }}"
+
+             data-reports="{{ complaint.report_count }}"
+
+             data-id="{{ complaint.id }}"
+
+             data-category="{{ complaint.category }}"
+
+             data-status="{{ complaint.status }}"
+
+             data-overdue="{% if complaint.is_overdue %}1{% else %}0{% endif %}"
+
+             data-aging="{% if complaint.is_aging %}1{% else %}0{% endif %}">
+
+
+            <div class="card shadow h-100">
+
+
+                <!-- ================================================= -->
+                <!-- IMAGE -->
+                <!-- ================================================= -->
+
+                {% if complaint.image %}
+
+                <img src="{{ url_for(
+                    'static',
+                    filename='uploads/' + complaint.image
+                ) }}"
+
+                     class="card-img-top"
+
+                     style="
+                        height:220px;
+                        object-fit:cover;
+                     ">
+
+                {% endif %}
+
+
+
+                <!-- ================================================= -->
+                <!-- CARD BODY -->
+                <!-- ================================================= -->
+
+                <div class="card-body">
+
+
+                    <!-- TITLE -->
+
+                    <h5 class="fw-bold">
+
+                        {{ complaint.title }}
+
+                    </h5>
+
+
+
+                    <!-- CATEGORY -->
+
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-1 mb-2">
+                        <span class="badge bg-secondary">
+                            {{ complaint.category }}
+                        </span>
+                        {% set sev = complaint.severity or 'Medium' %}
+                        <span class="badge {% if sev == 'Critical Hazard' %}bg-danger text-white{% elif sev == 'High' %}bg-warning text-dark{% elif sev == 'Low' %}bg-success text-white{% else %}bg-info text-dark{% endif %}">
+                            <i class="bi bi-shield-exclamation me-1"></i>{{ sev }}
+                        </span>
+                        <span class="badge bg-light text-dark border">
+                            {{ complaint.department or 'General' }}
+                        </span>
+                    </div>
+
+                    <hr class="my-2">
+
+
+
+                    <!-- DESCRIPTION -->
+
+                    <p>
+
+                        {{ complaint.description }}
+
+                    </p>
+
+
+
+                    <!-- LOCATION -->
+
+                    <p>
+
+                        <i class="bi bi-geo-alt"></i>
+
+                        {{ complaint.location }}
+
+                    </p>
+
+
+
+                    <!-- DISTANCE -->
+
+                    <p>
+
+                        <i class="bi bi-signpost"></i>
+
+                        <strong>
+
+                            {{ complaint.distance }} km away
+
+                        </strong>
+
+                    </p>
+
+
+
+                    <!-- REPORT COUNT -->
+
+                    <p>
+
+                        <i class="bi bi-people"></i>
+
+                        <strong>
+
+                            {{ complaint.report_count }}
+
+                        </strong>
+
+                        citizen{% if complaint.report_count != 1 %}s{% endif %}
+
+                        reported this issue
+
+                    </p>
+
+
+
+                    <!-- PRIORITY -->
+
+                    <p>
+
+                        <i class="bi bi-fire text-danger"></i>
+
+                        Priority:
+
+                        <strong>
+
+                            {{ complaint.priority }}
+
+                        </strong>
+
+                    </p>
+
+
+
+                    <!-- ================================================= -->
+                    <!-- URGENCY -->
+                    <!-- ================================================= -->
+
+                    {% if complaint.is_overdue %}
+
+
+                    <div class="alert alert-danger py-2 mt-3 mb-2">
+
+
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+
+                        <strong>
+                            OVERDUE
+                        </strong>
+
+
+                        <br>
+
+
+                        <small>
+
+                            This issue has been open for
+
+                            <strong>
+                                {{ complaint.age_days }}
+                            </strong>
+
+                            day{% if complaint.age_days != 1 %}s{% endif %}.
+
+                            Deadline:
+
+                            <strong>
+                                {{ complaint.deadline_days }}
+                            </strong>
+
+                            days.
+
+                        </small>
+
+
+                    </div>
+
+
+                    {% elif complaint.is_aging %}
+
+
+                    <div class="alert alert-warning py-2 mt-3 mb-2">
+
+
+                        <i class="bi bi-clock-fill"></i>
+
+                        <strong>
+                            NEEDS ATTENTION
+                        </strong>
+
+
+                        <br>
+
+
+                        <small>
+
+                            Open for
+
+                            <strong>
+                                {{ complaint.age_days }}
+                            </strong>
+
+                            day{% if complaint.age_days != 1 %}s{% endif %}.
+
+                            Deadline:
+
+                            <strong>
+                                {{ complaint.deadline_days }}
+                            </strong>
+
+                            days.
+
+                        </small>
+
+
+                    </div>
+
+
+                    {% endif %}
+
+
+
+                    <!-- ================================================= -->
+                    <!-- STATUS -->
+                    <!-- ================================================= -->
+
+                    <p class="mb-0">
+
+
+                        Status:
+
+
+                        {% if complaint.status == "Pending" %}
+
+
+                        <span class="badge bg-warning text-dark">
+
+                            Pending
+
+                        </span>
+
+
+                        {% elif complaint.status == "In Progress" %}
+
+
+                        <span class="badge bg-primary">
+
+                            In Progress
+
+                        </span>
+
+
+                        {% elif complaint.status == "Completed" %}
+
+
+                        <span class="badge bg-success">
+
+                            Completed
+
+                        </span>
+
+
+                        {% if complaint.verified %}
+
+
+                        <span class="badge bg-info text-dark">
+
+                            <i class="bi bi-patch-check-fill"></i>
+
+                            Verified
+
+                        </span>
+
+
+                        {% endif %}
+
+
+                        {% else %}
+
+
+                        <span class="badge bg-dark">
+
+                            {{ complaint.status }}
+
+                        </span>
+
+
+                        {% endif %}
+
+
+                    </p>
+
+
+
+                    <!-- ================================================= -->
+                    <!-- ASSIGNED ROLE -->
+                    <!-- ================================================= -->
+
+                    {% if complaint.assigned_role %}
+
+
+                    <p class="mt-2 mb-0">
+
+
+                        <strong>
+
+                            Assigned To:
+
+                        </strong>
+
+
+                        {{ complaint.assigned_role|capitalize }}
+
+
+                    </p>
+
+
+                    {% endif %}
+
+
+                </div>
+
+
+
+                <!-- ================================================= -->
+                <!-- CARD FOOTER -->
+                <!-- ================================================= -->
+
+                <div class="card-footer bg-white">
+
+
+                    <!-- GOOGLE MAPS -->
+
+                    <a href="https://www.google.com/maps?q={{ complaint.latitude }},{{ complaint.longitude }}"
+
+                       target="_blank"
+
+                       class="btn btn-outline-primary w-100 mb-2">
+
+
+                        <i class="bi bi-map"></i>
+
+                        View on Google Maps
+
+
+                    </a>
+
+
+
+                    <!-- ================================================= -->
+                    <!-- PENDING -->
+                    <!-- ================================================= -->
+
+                    {% if complaint.status == "Pending" %}
+
+                        {% if session.get("role") == "citizen" %}
+                        <form action="{{ url_for('confirm_duplicate', complaint_id=complaint.id) }}" method="POST">
+                            <button type="submit" class="btn btn-outline-danger w-100">
+                                <i class="bi bi-fire me-1"></i>
+                                Endorse This Issue (+1)
+                            </button>
+                        </form>
+                        {% else %}
+                        <a href="{{ url_for(
+                            'take_issue',
+                            complaint_id=complaint.id
+                        ) }}"
+                           class="btn btn-success w-100">
+
+                            <i class="bi bi-check-circle"></i>
+                            Take This Issue
+
+                        </a>
+                        {% endif %}
+
+
+
+                    <!-- ================================================= -->
+                    <!-- IN PROGRESS -->
+                    <!-- ================================================= -->
+
+                    {% elif complaint.status == "In Progress" %}
+
+
+                        {% if complaint.assigned_to == session["user_id"] %}
+
+
+                        <a href="{{ url_for(
+                            'complete_issue',
+                            complaint_id=complaint.id
+                        ) }}"
+
+                           class="btn btn-warning w-100">
+
+
+                            <i class="bi bi-upload"></i>
+
+                            Mark as Complete
+
+
+                        </a>
+
+
+                        {% else %}
+
+
+                        <button class="btn btn-primary w-100"
+                                disabled>
+
+
+                            <i class="bi bi-person-check-fill"></i>
+
+                            Assigned to
+
+                            {{ complaint.assigned_role|capitalize }}
+
+
+                        </button>
+
+
+                        {% endif %}
+
+
+
+                    <!-- ================================================= -->
+                    <!-- COMPLETED -->
+                    <!-- ================================================= -->
+
+                    {% elif complaint.status == "Completed" %}
+
+
+                    <button class="btn btn-success w-100"
+                            disabled>
+
+
+                        <i class="bi bi-check-circle"></i>
+
+                        Completed
+
+
+                    </button>
+
+
+                    {% endif %}
+
+
+                </div>
+
+
+            </div>
+
+
+        </div>
+
+
+        {% endfor %}
+
+
+    </div>
+
+
+    {% else %}
+
+
+    <!-- ================================================= -->
+    <!-- NO COMPLAINTS -->
+    <!-- ================================================= -->
+
+    <div class="text-center mt-5">
+
+
+        <div class="card shadow-sm">
+
+
+            <div class="card-body py-5">
+
+
+                <i class="bi bi-geo-alt display-4 text-muted"></i>
+
+
+                <h4 class="mt-3">
+
+                    No Nearby Issues
+
+                </h4>
+
+
+                <p class="text-muted">
+
+                    Click "Use My Current Location" to find
+                    civic issues within 20 km.
+
+                </p>
+
+
+            </div>
+
+
+        </div>
+
+
+    </div>
+
+
+    {% endif %}
+
+
+</div>
+
+
+
+<!-- ===================================================== -->
+<!-- BOOTSTRAP JAVASCRIPT -->
+<!-- ===================================================== -->
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js">
+</script>
+
+
+
+<script>
+
+
+/* =====================================================
+   GET CURRENT LOCATION
+   ===================================================== */
+
+function getLocation() {
+
+
+    if (navigator.geolocation) {
+
+
+        navigator.geolocation.getCurrentPosition(
+
+
+            function(position) {
+
+
+                document.getElementById("latitude").value =
+                    position.coords.latitude;
+
+
+                document.getElementById("longitude").value =
+                    position.coords.longitude;
+
+
+                document.getElementById("locationForm").submit();
+
+
+            },
+
+
+            function() {
+
+
+                alert(
+                    "Unable to access your location."
+                );
+
+
+            }
+
+
+        );
+
+
+    }
+
+
+    else {
+
+
+        alert(
+            "Geolocation is not supported by your browser."
+        );
+
+
+    }
+
+
+}
+
+
+
+/* =====================================================
+   SORT COMPLAINTS
+   ===================================================== */
+
+function sortIssues(criteria) {
+
+
+    const container =
+        document.getElementById(
+            "complaintsContainer"
+        );
+
+
+    /* No complaints loaded */
+
+    if (!container) {
+
+
+        alert(
+            "Please use your current location first."
+        );
+
+
+        return;
+
+
+    }
+
+
+
+    /* Get complaint cards */
+
+    const cards = Array.from(
+
+        container.querySelectorAll(
+            ".complaint-card"
+        )
+
+    );
+
+
+
+    /* =================================================
+       SORT
+       ================================================= */
+
+    cards.sort(function(a, b) {
+
+
+
+        /* ---------------------------------------------
+           OVERDUE FIRST
+           --------------------------------------------- */
+
+        if (criteria === "overdue") {
+
+
+            return (
+
+                Number(b.dataset.overdue)
+
+                -
+
+                Number(a.dataset.overdue)
+
+            );
+
+
+        }
+
+
+
+        /* ---------------------------------------------
+           HIGHEST PRIORITY
+           --------------------------------------------- */
+
+        if (criteria === "priority") {
+
+
+            return (
+
+                Number(b.dataset.priority)
+
+                -
+
+                Number(a.dataset.priority)
+
+            );
+
+
+        }
+
+
+
+        /* ---------------------------------------------
+           NEAREST FIRST
+           --------------------------------------------- */
+
+        if (criteria === "distance") {
+
+
+            return (
+
+                Number(a.dataset.distance)
+
+                -
+
+                Number(b.dataset.distance)
+
+            );
+
+
+        }
+
+
+
+        /* ---------------------------------------------
+           MOST REPORTED
+           --------------------------------------------- */
+
+        if (criteria === "reports") {
+
+
+            return (
+
+                Number(b.dataset.reports)
+
+                -
+
+                Number(a.dataset.reports)
+
+            );
+
+
+        }
+
+
+
+        /* ---------------------------------------------
+           NEWEST
+           --------------------------------------------- */
+
+        if (criteria === "newest") {
+
+
+            return (
+
+                Number(b.dataset.id)
+
+                -
+
+                Number(a.dataset.id)
+
+            );
+
+
+        }
+
+
+
+        /* ---------------------------------------------
+           OLDEST
+           --------------------------------------------- */
+
+        if (criteria === "oldest") {
+
+
+            return (
+
+                Number(a.dataset.id)
+
+                -
+
+                Number(b.dataset.id)
+
+            );
+
+
+        }
+
+
+
+        /* ---------------------------------------------
+           CATEGORY A-Z
+           --------------------------------------------- */
+
+        if (criteria === "category_az") {
+
+
+            return a.dataset.category.localeCompare(
+
+                b.dataset.category
+
+            );
+
+
+        }
+
+
+
+        /* ---------------------------------------------
+           CATEGORY Z-A
+           --------------------------------------------- */
+
+        if (criteria === "category_za") {
+
+
+            return b.dataset.category.localeCompare(
+
+                a.dataset.category
+
+            );
+
+
+        }
+
+
+
+        /* ---------------------------------------------
+           STATUS
+           --------------------------------------------- */
+
+        if (criteria === "status") {
+
+
+            const statusOrder = {
+
+
+                "Pending": 1,
+
+
+                "In Progress": 2,
+
+
+                "Completed": 3
+
+
+            };
+
+
+            return (
+
+                (statusOrder[a.dataset.status] || 99)
+
+                -
+
+                (statusOrder[b.dataset.status] || 99)
+
+            );
+
+
+        }
+
+
+
+        return 0;
+
+
+    });
+
+
+
+    /* =================================================
+       RE-INSERT CARDS
+       ================================================= */
+
+    cards.forEach(function(card) {
+
+
+        container.appendChild(card);
+
+
+    });
+
+
+
+    /* =================================================
+       UPDATE SORT BUTTON
+       ================================================= */
+
+    const sortButton =
+        document.querySelector(
+            ".dropdown-toggle"
+        );
+
+
+    if (sortButton) {
+
+
+        const names = {
+
+
+            overdue:
+                "🔴 Overdue First",
+
+
+            priority:
+                "🔥 Highest Priority",
+
+
+            distance:
+                "📍 Nearest First",
+
+
+            reports:
+                "👥 Most Reported",
+
+
+            newest:
+                "🆕 Newest",
+
+
+            oldest:
+                "🕐 Oldest",
+
+
+            category_az:
+                "🔤 Category A–Z",
+
+
+            category_za:
+                "🔤 Category Z–A",
+
+
+            status:
+                "🚦 Status"
+
+
+        };
+
+
+        sortButton.innerHTML =
+
+            '<i class="bi bi-sort-down"></i> '
+
+            +
+
+            names[criteria];
+
+
+    }
+
+
+}
+
+
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+
+</html>

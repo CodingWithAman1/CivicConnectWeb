@@ -1,0 +1,1439 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Report Issue | CivicConnect</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+          rel="stylesheet">
+
+    <link rel="stylesheet"
+          href="https://unpkg.com/leaflet/dist/leaflet.css">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <style>
+
+        body {
+            background: #f4f7fb;
+        }
+
+        .report-card {
+            border: none;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #dc3545, #b02a37);
+            padding: 22px 25px;
+        }
+
+        .card-header h3 {
+            margin: 0;
+            font-weight: 700;
+        }
+
+        .form-label {
+            font-weight: 600;
+        }
+
+        .form-control,
+        .form-select {
+            border-radius: 10px;
+            padding: 11px 13px;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            box-shadow: 0 0 0 .2rem rgba(13, 110, 253, .12);
+        }
+
+        /* AI IMAGE SECTION */
+
+        .ai-box {
+            background: #f8f9ff;
+            border: 1px solid #e1e5ff;
+            border-radius: 16px;
+            padding: 25px;
+        }
+
+        .ai-box h5 {
+            font-weight: 700;
+        }
+
+        #preview {
+            display: none;
+            max-height: 220px;
+            max-width: 100%;
+            border-radius: 12px;
+            object-fit: contain;
+            border: 1px solid var(--border-medium);
+            padding: 4px;
+            background: var(--bg-surface);
+        }
+
+        #analyzeBtn {
+            border-radius: 10px;
+            font-weight: 600;
+        }
+
+        #aiStatus {
+            font-size: .9rem;
+        }
+
+        /* MAP */
+
+        #map {
+            height: 400px;
+            border-radius: 14px;
+            border: 1px solid #dee2e6;
+        }
+
+        .location-help {
+            font-size: .85rem;
+            color: #6c757d;
+        }
+
+        /* SUBMIT */
+
+        .submit-area {
+            border-top: 1px solid #e9ecef;
+            padding-top: 25px;
+        }
+
+        /* AI FIELD HIGHLIGHT */
+
+        .ai-filled {
+            animation: highlightField 1.2s ease;
+        }
+
+        @keyframes highlightField {
+
+            0% {
+                background-color: #e8f5e9;
+            }
+
+            100% {
+                background-color: white;
+            }
+
+        }
+
+        /* DUPLICATE MATCH CARDS */
+
+        .dup-card {
+            border: 1px solid #e9ecef;
+            border-radius: 14px;
+            padding: 14px;
+            display: flex;
+            gap: 14px;
+            align-items: center;
+        }
+
+        .dup-card img {
+            width: 84px;
+            height: 84px;
+            object-fit: cover;
+            border-radius: 10px;
+            flex-shrink: 0;
+            background: #f1f3f5;
+        }
+
+        .dup-card .dup-meta {
+            font-size: .8rem;
+            color: #6c757d;
+        }
+
+        .dup-card + .dup-card {
+            margin-top: 12px;
+        }
+
+        @media (max-width: 768px) {
+
+            #map {
+                height: 320px;
+            }
+
+            .ai-box {
+                padding: 18px;
+            }
+
+            .dup-card {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+<!-- Top Navigation -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm py-2">
+    <div class="container">
+        <a class="navbar-brand fw-bold text-white" href="{{ url_for('dashboard') }}">
+            <i class="bi bi-buildings-fill me-1"></i> CivicConnect
+        </a>
+        <div class="d-flex align-items-center gap-2">
+            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-light btn-sm">
+                <i class="bi bi-arrow-left me-1"></i> Dashboard
+            </a>
+            <a href="{{ url_for('my_complaints') }}" class="btn btn-light btn-sm">
+                <i class="bi bi-folder2-open me-1"></i> My Complaints
+            </a>
+        </div>
+    </div>
+</nav>
+
+<div class="container py-4">
+
+    <!-- Flash notifications -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, msg in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm" role="alert">
+                    {{ msg }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="card shadow-lg report-card border-0 rounded-4 overflow-hidden bg-white">
+
+        <!-- HEADER -->
+        <div class="card-header text-white bg-gradient py-3 px-4 d-flex align-items-center justify-content-between" style="background: linear-gradient(135deg, #1e40af, #2563eb);">
+            <div>
+                <h3 class="fw-bold mb-0">
+                    <i class="bi bi-camera-fill me-2"></i> Report a Civic Issue
+                </h3>
+                <small class="opacity-80">
+                    Powered by Multimodal AI for instant hazard & category detection.
+                </small>
+            </div>
+            <span class="badge bg-white bg-opacity-20 text-white border border-white border-opacity-25 px-3 py-2 small d-none d-sm-inline">
+                <i class="bi bi-stars me-1"></i> Gemini Vision Enabled
+            </span>
+        </div>
+
+        <div class="card-body p-4 p-md-5">
+
+
+            <form method="POST"
+                  enctype="multipart/form-data"
+                  id="reportForm">
+
+
+                <!-- Set to an existing complaint id when the citizen
+                     confirms this is a duplicate. Left empty for a
+                     brand-new report. -->
+
+                <input
+                    type="hidden"
+                    id="duplicateOfInput"
+                    name="duplicate_of"
+                    value="">
+
+
+                <!-- =====================================
+                     IMAGE + AI SECTION
+                ====================================== -->
+
+                <div class="ai-box mb-5">
+
+
+                    <div class="text-center mb-4">
+
+                        <h5>
+
+                            <i class="bi bi-camera-fill text-primary me-2"></i>
+
+                            Upload Issue Image
+
+                        </h5>
+
+                        <p class="text-muted small mb-0">
+
+                            Upload a photo of the civic issue
+                            and let AI identify the problem.
+
+                        </p>
+
+                    </div>
+
+
+                    <div class="row align-items-center g-4">
+
+
+                        <!-- IMAGE UPLOAD -->
+
+                        <div class="col-md-6">
+
+                            <label class="form-label">
+
+                                Select Image
+
+                            </label>
+
+                            <input
+                                type="file"
+                                class="form-control"
+                                id="image"
+                                name="image"
+                                accept="image/*"
+                                onchange="previewImage(event)">
+
+                            <div class="small text-muted mt-2">
+
+                                <i class="bi bi-info-circle me-1"></i>
+
+                                JPG, JPEG and PNG images are supported.
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- IMAGE PREVIEW -->
+
+                        <div class="col-md-6 text-center">
+
+                            <img
+                                id="preview"
+                                class="img-fluid">
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- AI BUTTON -->
+
+                    <div class="text-center mt-4">
+
+                        <button
+                            type="button"
+                            class="btn btn-primary px-4"
+                            id="analyzeBtn">
+
+                            <i class="bi bi-stars me-2"></i>
+
+                            Analyze Image with AI
+
+                        </button>
+
+
+                        <div
+                            id="aiStatus"
+                            class="mt-3">
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="text-center small text-muted mt-3">
+
+                        <i class="bi bi-magic me-1"></i>
+
+                        AI will suggest the issue title,
+                        category and description.
+
+                    </div>
+
+                </div>
+
+
+                <!-- =====================================
+                     ISSUE DETAILS
+                ====================================== -->
+
+                <div class="row g-4">
+
+
+                    <!-- LEFT COLUMN -->
+
+                    <div class="col-md-6">
+
+
+                        <!-- TITLE -->
+
+                        <div class="mb-4">
+
+                            <label class="form-label">
+
+                                Issue Title
+
+                            </label>
+
+                            <input
+                                type="text"
+                                class="form-control"
+                                id="title"
+                                name="title"
+                                placeholder="Issue title"
+                                required>
+
+                        </div>
+
+
+                        <!-- CATEGORY -->
+
+                        <div class="mb-4">
+
+                            <label class="form-label">
+
+                                Category
+
+                            </label>
+
+                            <select
+                                name="category"
+                                id="category"
+                                class="form-select"
+                                required>
+
+                                <option value="">
+                                    Select category
+                                </option>
+
+                                <option value="Garbage">
+                                    Garbage
+                                </option>
+
+                                <option value="Pothole">
+                                    Pothole
+                                </option>
+
+                                <option value="Street Light">
+                                    Street Light
+                                </option>
+
+                                <option value="Water Leakage">
+                                    Water Leakage
+                                </option>
+
+                                <option value="Sewage">
+                                    Sewage
+                                </option>
+
+                                <option value="Illegal Dumping">
+                                    Illegal Dumping
+                                </option>
+
+                                <option value="Other">
+                                    Other
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <!-- SEVERITY & DEPARTMENT (AI-POWERED) -->
+
+                        <div class="row g-2 mb-4">
+
+                            <div class="col-sm-6">
+
+                                <label class="form-label d-flex align-items-center justify-content-between">
+
+                                    <span>Hazard Severity</span>
+
+                                    <span id="severityBadge" class="badge bg-secondary-subtle text-secondary small">AI-detected</span>
+
+                                </label>
+
+                                <select name="severity" id="severity" class="form-select" required>
+
+                                    <option value="Low">🟢 Low (Minor defect)</option>
+
+                                    <option value="Medium" selected>🟡 Medium (Standard)</option>
+
+                                    <option value="High">🟠 High (Urgent hazard)</option>
+
+                                    <option value="Critical Hazard">🔴 Critical Hazard (Emergency)</option>
+
+                                </select>
+
+                            </div>
+
+                            <div class="col-sm-6">
+
+                                <label class="form-label">
+
+                                    Municipal Department
+
+                                </label>
+
+                                <select name="department" id="department" class="form-select">
+
+                                    <option value="General" selected>General Administration</option>
+
+                                    <option value="Roads & Transport">Roads & Transport</option>
+
+                                    <option value="Water Supply & Sewerage">Water & Sewerage Board</option>
+
+                                    <option value="Solid Waste Management">Solid Waste Management</option>
+
+                                    <option value="Electrical & Lighting">Electrical & Lighting</option>
+
+                                    <option value="Public Health">Public Health & Safety</option>
+
+                                </select>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- EMERGENCY HAZARD SOS TOGGLE -->
+                        <div class="card mb-4 border-danger-subtle" id="emergencyToggleCard" style="border: 1.5px dashed #ef4444; border-radius: 14px; background: rgba(239, 68, 68, 0.05); transition: all 0.3s ease;">
+                            <div class="card-body p-3">
+                                <div class="form-check form-switch d-flex align-items-center justify-content-between flex-wrap gap-2 p-0 m-0">
+                                    <label class="form-check-label fw-bold text-danger d-flex align-items-center gap-2 mb-0" for="is_emergency_toggle" style="cursor: pointer; font-size: 0.95rem; flex: 1; min-width: 220px;">
+                                        <i class="bi bi-shield-fill-exclamation fs-5 flex-shrink-0"></i>
+                                        <span>Mark as Life-Threatening / Emergency SOS</span>
+                                    </label>
+                                    <input class="form-check-input ms-auto" type="checkbox" role="switch" id="is_emergency_toggle" name="is_emergency" value="1" onchange="handleEmergencyToggle(this)" style="cursor: pointer; width: 2.75em; height: 1.4em; flex-shrink: 0;">
+                                </div>
+                                <div class="small text-danger text-opacity-75 mt-2" id="emergencyNote">
+                                    <i class="bi bi-exclamation-circle me-1"></i> Activate for immediate disaster, open high-voltage wires, gas leaks, collapsed road, or severe flooding. Alerts Municipal Emergency Response instantly.
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <!-- DESCRIPTION -->
+
+                        <div class="mb-4">
+
+                            <label class="form-label">
+
+                                Description
+
+                            </label>
+
+                            <textarea
+                                class="form-control"
+                                id="description"
+                                name="description"
+                                rows="6"
+                                placeholder="Describe the issue..."
+                                required></textarea>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- RIGHT COLUMN -->
+
+                    <div class="col-md-6">
+
+
+                        <!-- LOCATION -->
+
+                        <div class="mb-4">
+
+                            <label class="form-label">
+
+                                <i class="bi bi-geo-alt-fill me-1"></i>
+
+                                Location
+
+                            </label>
+
+                            <div class="input-group">
+
+                                <input
+                                    type="text"
+                                    id="location"
+                                    name="location"
+                                    class="form-control"
+                                    placeholder="Click map or use GPS"
+                                    required>
+
+                                <button
+                                    type="button"
+                                    class="btn btn-primary"
+                                    id="gpsBtn"
+                                    onclick="getLocation()">
+
+                                    <i class="bi bi-crosshair me-1"></i>
+
+                                    GPS
+
+                                </button>
+
+                            </div>
+
+                            <div class="location-help mt-2">
+
+                                <i class="bi bi-info-circle me-1"></i>
+
+                                Use GPS or click the map to select
+                                the exact location.
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- HIDDEN COORDINATES -->
+
+                        <input
+                            type="hidden"
+                            id="latitude"
+                            name="latitude">
+
+                        <input
+                            type="hidden"
+                            id="longitude"
+                            name="longitude">
+
+                    </div>
+
+                </div>
+
+
+                <!-- =====================================
+                     MAP
+                ====================================== -->
+
+                <div class="mb-4 mt-3">
+
+                    <label class="form-label">
+
+                        <i class="bi bi-map me-1"></i>
+
+                        Choose Exact Location
+
+                    </label>
+
+                    <div id="map"></div>
+
+                </div>
+
+
+                <!-- =====================================
+                     SUBMIT
+                ====================================== -->
+
+                <div class="submit-area d-flex justify-content-end gap-2">
+
+                    <a
+                        href="{{ url_for('dashboard') }}"
+                        class="btn btn-secondary">
+
+                        <i class="bi bi-x-lg me-1"></i>
+
+                        Cancel
+
+                    </a>
+
+                    <button
+                        type="submit"
+                        class="btn btn-danger px-4"
+                        id="submitBtn">
+
+                        <i class="bi bi-send-fill me-1"></i>
+
+                        Submit Complaint
+
+                    </button>
+
+                </div>
+
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================
+     DUPLICATE ISSUE MODAL
+====================================== -->
+
+<div class="modal fade" id="duplicateModal" tabindex="-1" aria-hidden="true">
+
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+
+        <div class="modal-content" style="border-radius: 16px; overflow: hidden;">
+
+            <div class="modal-header bg-warning-subtle">
+
+                <h5 class="modal-title">
+
+                    <i class="bi bi-exclamation-diamond-fill text-warning me-2"></i>
+
+                    Similar issues nearby
+
+                </h5>
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"
+                    aria-label="Close"></button>
+
+            </div>
+
+            <div class="modal-body">
+
+                <p class="text-muted">
+
+                    We found some already-reported issues close to this
+                    location. If one of these matches yours, select it
+                    below instead of creating a new report &mdash; it
+                    helps us prioritize the issue faster.
+
+                </p>
+
+                <div id="dupList"></div>
+
+            </div>
+
+            <div class="modal-footer">
+
+                <button
+                    type="button"
+                    class="btn btn-secondary"
+                    data-bs-dismiss="modal">
+
+                    Go back and edit
+
+                </button>
+
+                <button
+                    type="button"
+                    class="btn btn-danger"
+                    id="reportAsNewBtn">
+
+                    <i class="bi bi-plus-circle me-1"></i>
+
+                    None of these &mdash; report as new
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+
+
+<script>
+
+/* =========================================
+   MAP
+========================================= */
+
+var map = L.map('map').setView(
+    [20.5937, 78.9629],
+    5
+);
+
+
+L.tileLayer(
+    'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    {
+        attribution: '© OpenStreetMap'
+    }
+).addTo(map);
+
+
+var marker;
+
+
+/* =========================================
+   SET MARKER
+========================================= */
+
+function setMarker(lat, lng) {
+
+    if (marker) {
+        map.removeLayer(marker);
+    }
+
+    marker = L.marker([lat, lng]).addTo(map);
+
+    map.setView([lat, lng], 16);
+
+    document.getElementById("latitude").value = lat;
+
+    document.getElementById("longitude").value = lng;
+
+    document.getElementById("location").value =
+        lat.toFixed(6) + ", " + lng.toFixed(6);
+}
+
+
+/* =========================================
+   MAP CLICK
+========================================= */
+
+map.on("click", function(e) {
+
+    setMarker(
+        e.latlng.lat,
+        e.latlng.lng
+    );
+
+});
+
+
+/* =========================================
+   GPS
+========================================= */
+
+function getLocation() {
+
+    if (!navigator.geolocation) {
+
+        alert(
+            "Geolocation is not supported by your browser."
+        );
+
+        return;
+    }
+
+
+    const gpsButton =
+        document.getElementById("gpsBtn");
+
+
+    gpsButton.disabled = true;
+
+    gpsButton.innerHTML = `
+        <span class="spinner-border spinner-border-sm me-1"></span>
+        Locating...
+    `;
+
+
+    navigator.geolocation.getCurrentPosition(
+
+        function(position) {
+
+            setMarker(
+                position.coords.latitude,
+                position.coords.longitude
+            );
+
+            gpsButton.disabled = false;
+
+            gpsButton.innerHTML = `
+                <i class="bi bi-crosshair me-1"></i>
+                GPS
+            `;
+
+        },
+
+        function() {
+
+            alert(
+                "Unable to fetch your location. Please select it manually on the map."
+            );
+
+            gpsButton.disabled = false;
+
+            gpsButton.innerHTML = `
+                <i class="bi bi-crosshair me-1"></i>
+                GPS
+            `;
+
+        }
+
+    );
+
+}
+
+
+/* =========================================
+   IMAGE PREVIEW
+========================================= */
+
+function previewImage(event) {
+
+    const file =
+        event.target.files[0];
+
+    if (!file) {
+        return;
+    }
+
+
+    const reader =
+        new FileReader();
+
+
+    reader.onload = function() {
+
+        const img =
+            document.getElementById("preview");
+
+        img.src =
+            reader.result;
+
+        img.style.display =
+            "block";
+
+    };
+
+
+    reader.readAsDataURL(file);
+
+}
+
+
+/* =========================================
+   GEMINI AI
+========================================= */
+
+const imageInput =
+    document.getElementById("image");
+
+const analyzeBtn =
+    document.getElementById("analyzeBtn");
+
+const aiStatus =
+    document.getElementById("aiStatus");
+
+
+analyzeBtn.addEventListener(
+    "click",
+    async function() {
+
+        const file =
+            imageInput.files[0];
+
+
+        if (!file) {
+
+            alert(
+                "Please upload an image first."
+            );
+
+            return;
+        }
+
+
+        /* Loading */
+
+        analyzeBtn.disabled = true;
+
+        analyzeBtn.innerHTML = `
+            <span class="spinner-border spinner-border-sm me-2"></span>
+            Analyzing...
+        `;
+
+
+        aiStatus.innerHTML = `
+            <span class="text-primary">
+                <i class="bi bi-stars me-1"></i>
+                Gemini is analyzing the image...
+            </span>
+        `;
+
+
+        try {
+
+            const formData =
+                new FormData();
+
+            formData.append(
+                "image",
+                file
+            );
+
+
+            const response =
+                await fetch(
+                    "/analyze_issue",
+                    {
+                        method: "POST",
+                        body: formData
+                    }
+                );
+
+
+            const result =
+                await response.json();
+
+
+            if (!result.success) {
+
+                throw new Error(
+                    result.error ||
+                    "AI analysis failed."
+                );
+
+            }
+
+
+            const data =
+                result.data;
+
+
+            /* =================================
+               TITLE
+            ================================= */
+
+            const title =
+                document.getElementById("title");
+
+            title.value =
+                data.title || "";
+
+            title.classList.add("ai-filled");
+
+
+            /* =================================
+               DESCRIPTION
+            ================================= */
+
+            const description =
+                document.getElementById("description");
+
+            description.value =
+                data.description || "";
+
+            description.classList.add("ai-filled");
+
+
+            /* =================================
+               CATEGORY
+            ================================= */
+
+            const category =
+                document.getElementById("category");
+
+
+            const aiCategory =
+                (data.category || "")
+                .trim()
+                .toLowerCase();
+
+
+            const categoryMap = {
+
+                "garbage": "Garbage",
+
+                "pothole": "Pothole",
+
+                "potholes": "Pothole",
+
+                "street light": "Street Light",
+
+                "streetlight": "Street Light",
+
+                "streetlights": "Street Light",
+
+                "water leakage": "Water Leakage",
+
+                "water leak": "Water Leakage",
+
+                "water": "Water Leakage",
+
+                "sewage": "Sewage",
+
+                "sewer": "Sewage",
+
+                "illegal dumping": "Illegal Dumping",
+
+                "dumping": "Illegal Dumping"
+
+            };
+
+
+            if (categoryMap[aiCategory]) {
+
+                category.value =
+                    categoryMap[aiCategory];
+
+            } else {
+
+                category.value =
+                    "Other";
+
+            }
+
+
+            category.classList.add(
+                "ai-filled"
+            );
+
+
+            /* =================================
+               SEVERITY & DEPARTMENT (AI-POWERED)
+            ================================= */
+
+            const severitySelect = document.getElementById("severity");
+            const departmentSelect = document.getElementById("department");
+            const severityBadge = document.getElementById("severityBadge");
+
+            if (data.severity && severitySelect) {
+                severitySelect.value = data.severity;
+                severitySelect.classList.add("ai-filled");
+                if (severityBadge) {
+                    const badgeClasses = {
+                        "Critical Hazard": "bg-danger text-white",
+                        "High": "bg-warning text-dark",
+                        "Medium": "bg-info text-dark",
+                        "Low": "bg-success text-white"
+                    };
+                    severityBadge.className = `badge ${badgeClasses[data.severity] || "bg-secondary text-white"} small`;
+                    severityBadge.textContent = `AI: ${data.severity}`;
+                }
+            }
+
+            if (data.department && departmentSelect) {
+                for (let opt of departmentSelect.options) {
+                    if (opt.value.toLowerCase().includes(data.department.toLowerCase()) || 
+                        data.department.toLowerCase().includes(opt.value.toLowerCase())) {
+                        departmentSelect.value = opt.value;
+                        departmentSelect.classList.add("ai-filled");
+                        break;
+                    }
+                }
+            }
+
+
+            /* =================================
+               SUCCESS
+            ================================= */
+
+            aiStatus.innerHTML = `
+
+                <span class="text-success fw-semibold">
+
+                    <i class="bi bi-check-circle-fill me-1"></i>
+
+                    AI analysis complete.
+                    Please review the information.
+
+                </span>
+
+            `;
+
+        }
+
+
+        catch (error) {
+
+            console.error(
+                "AI Error:",
+                error
+            );
+
+
+            aiStatus.innerHTML = `
+
+                <span class="text-danger">
+
+                    <i class="bi bi-exclamation-circle-fill me-1"></i>
+
+                    AI analysis failed.
+                    Please fill the form manually.
+
+                </span>
+
+            `;
+
+        }
+
+
+        finally {
+
+            analyzeBtn.disabled = false;
+
+            analyzeBtn.innerHTML = `
+
+                <i class="bi bi-stars me-2"></i>
+
+                Analyze Image with AI
+
+            `;
+
+        }
+
+    }
+
+);
+
+
+/* =========================================
+   DUPLICATE-ISSUE CHECK
+   Intercepts submit -> asks the backend for
+   nearby same-category complaints -> lets the
+   citizen either link to an existing one or
+   proceed with a fresh report.
+========================================= */
+
+const reportForm =
+    document.getElementById("reportForm");
+
+const submitBtn =
+    document.getElementById("submitBtn");
+
+const duplicateOfInput =
+    document.getElementById("duplicateOfInput");
+
+const duplicateModalEl =
+    document.getElementById("duplicateModal");
+
+const duplicateModal =
+    new bootstrap.Modal(duplicateModalEl);
+
+const dupList =
+    document.getElementById("dupList");
+
+const reportAsNewBtn =
+    document.getElementById("reportAsNewBtn");
+
+
+// If the user already resolved a duplicate check for this
+// submission (either confirmed "report as new" or picked a
+// match), let the native submit go through without looping.
+
+let bypassDuplicateCheck = false;
+
+
+reportForm.addEventListener("submit", async function(e) {
+
+    if (bypassDuplicateCheck) {
+        return; // allow normal submit
+    }
+
+    e.preventDefault();
+
+    const category =
+        document.getElementById("category").value;
+
+    const latitude =
+        document.getElementById("latitude").value;
+
+    const longitude =
+        document.getElementById("longitude").value;
+
+    if (!category || !latitude || !longitude) {
+        // Let the browser's own "required" validation handle
+        // missing fields instead of silently blocking submit.
+        reportForm.reportValidity();
+        return;
+    }
+
+    submitBtn.disabled = true;
+
+    submitBtn.innerHTML = `
+        <span class="spinner-border spinner-border-sm me-2"></span>
+        Checking...
+    `;
+
+    try {
+
+        const res = await fetch("/check_duplicates", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ category, latitude, longitude })
+        });
+
+        const data = await res.json();
+
+        if (data.success && data.matches && data.matches.length > 0) {
+
+            renderDuplicates(data.matches);
+            duplicateModal.show();
+
+        } else {
+
+            submitReport(); // no matches, go straight through
+
+        }
+
+    } catch (err) {
+
+        console.error("Duplicate check failed:", err);
+
+        // If the check itself fails, don't block the citizen
+        // from reporting - just submit normally.
+        submitReport();
+    }
+
+});
+
+
+function renderDuplicates(matches) {
+
+    dupList.innerHTML = "";
+
+    matches.forEach(function(m) {
+
+        const card = document.createElement("div");
+        card.className = "dup-card";
+
+        const imgSrc = m.image
+            ? "/static/uploads/" + m.image
+            : "https://via.placeholder.com/84?text=No+Image";
+
+        card.innerHTML = `
+            <img src="${imgSrc}" alt="">
+            <div class="flex-grow-1">
+                <div class="fw-semibold">${escapeHtml(m.title)}</div>
+                <div class="small text-muted mb-1">
+                    ${escapeHtml(m.description || "").slice(0, 100)}
+                </div>
+                <div class="dup-meta">
+                    <span class="badge bg-secondary-subtle text-dark border me-1">
+                        ${escapeHtml(m.status)}
+                    </span>
+                    ~${m.distance_m} m away &middot;
+                    ${m.reporters} report${m.reporters === 1 ? "" : "s"} so far
+                </div>
+            </div>
+            <button type="button"
+                    class="btn btn-outline-danger btn-sm dup-select-btn"
+                    data-id="${m.id}">
+                This is my issue
+            </button>
+        `;
+
+        dupList.appendChild(card);
+
+    });
+
+    dupList.querySelectorAll(".dup-select-btn").forEach(function(btn) {
+
+        btn.addEventListener("click", function() {
+
+            duplicateOfInput.value = btn.getAttribute("data-id");
+
+            duplicateModal.hide();
+
+            bypassDuplicateCheck = true;
+
+            reportForm.submit();
+
+        });
+
+    });
+
+}
+
+
+reportAsNewBtn.addEventListener("click", function() {
+
+    duplicateOfInput.value = "";
+
+    duplicateModal.hide();
+
+    bypassDuplicateCheck = true;
+
+    reportForm.submit();
+
+});
+
+
+duplicateModalEl.addEventListener("hidden.bs.modal", function() {
+
+    // Reset the submit button if the citizen dismissed the
+    // modal via "Go back and edit" or the close icon instead
+    // of choosing an option.
+    if (!bypassDuplicateCheck) {
+
+        submitBtn.disabled = false;
+
+        submitBtn.innerHTML = `
+            <i class="bi bi-send-fill me-1"></i>
+            Submit Complaint
+        `;
+
+    }
+
+});
+
+
+function submitReport() {
+
+    bypassDuplicateCheck = true;
+
+    reportForm.submit();
+
+}
+
+
+function escapeHtml(str) {
+
+    const div = document.createElement("div");
+
+    div.textContent = str || "";
+
+    return div.innerHTML;
+
+}
+
+function handleEmergencyToggle(chk) {
+    const card = document.getElementById("emergencyToggleCard");
+    const sevSelect = document.getElementById("severity");
+    const btn = document.getElementById("submitBtn");
+
+    if (chk.checked) {
+        if (card) {
+            card.style.background = "rgba(239, 68, 68, 0.15)";
+            card.style.border = "2px solid #ef4444";
+            card.style.boxShadow = "0 0 15px rgba(239, 68, 68, 0.25)";
+        }
+        if (sevSelect) {
+            sevSelect.value = "Critical Hazard";
+        }
+        if (btn) {
+            btn.className = "btn btn-danger btn-lg px-4 fw-bold shadow";
+            btn.innerHTML = `<i class="bi bi-shield-fill-exclamation me-1"></i> 🚨 Submit Emergency SOS`;
+            btn.style.animation = "pulse 1.5s infinite";
+        }
+    } else {
+        if (card) {
+            card.style.background = "rgba(239, 68, 68, 0.05)";
+            card.style.border = "1.5px dashed #ef4444";
+            card.style.boxShadow = "none";
+        }
+        if (btn) {
+            btn.className = "btn btn-danger px-4";
+            btn.innerHTML = `<i class="bi bi-send-fill me-1"></i> Submit Complaint`;
+            btn.style.animation = "none";
+        }
+    }
+}
+
+</script>
+
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
+</body>
+
+</html>

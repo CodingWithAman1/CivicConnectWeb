@@ -1,0 +1,27 @@
+# Environment variables & secrets
+.env
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+
+# Database & SQLite files
+instance/
+*.db
+*.sqlite3
+
+# Uploaded files
+static/uploads/*
+!static/uploads/.gitkeep
+
+# IDE & OS
+.vscode/
+.idea/
+*.swp
+Thumbs.db

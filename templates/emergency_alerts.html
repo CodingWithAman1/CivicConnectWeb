@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emergency Alerts & Civil Safety | CivicConnect</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <style>
+        .crisis-hero-active {
+            background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 50%, #b91c1c 100%);
+            color: #ffffff;
+            border-radius: var(--radius-xl);
+            padding: 38px 32px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 12px 35px rgba(185, 28, 28, 0.4);
+            border: 2px solid #ef4444;
+            animation: heroGlow 3s infinite alternate;
+        }
+
+        @keyframes heroGlow {
+            from { box-shadow: 0 10px 25px rgba(185, 28, 28, 0.35); }
+            to { box-shadow: 0 15px 45px rgba(239, 68, 68, 0.6); }
+        }
+
+        .crisis-hero-clear {
+            background: linear-gradient(135deg, #064e3b 0%, #065f46 50%, #047857 100%);
+            color: #ffffff;
+            border-radius: var(--radius-xl);
+            padding: 38px 32px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(4, 120, 87, 0.25);
+        }
+
+        .helpline-box {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            text-align: center;
+            transition: var(--transition);
+            height: 100%;
+        }
+
+        .helpline-box:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+            border-color: #ef4444;
+        }
+
+        .guide-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 22px;
+            height: 100%;
+            transition: var(--transition);
+        }
+
+        .guide-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .siren-badge-glow {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: #ef4444;
+            color: white;
+            font-size: 1.6rem;
+            animation: sirenBadgePulse 1s infinite alternate;
+        }
+
+        @keyframes sirenBadgePulse {
+            from { transform: scale(0.96); filter: drop-shadow(0 0 2px #ef4444); }
+            to { transform: scale(1.1); filter: drop-shadow(0 0 16px #f87171); }
+        }
+    </style>
+</head>
+
+<body class="bg-light">
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm py-2">
+    <div class="container">
+        <a class="navbar-brand fw-bold text-white" href="{{ url_for('dashboard') if logged_in else url_for('landing') }}">
+            <i class="bi bi-shield-fill-exclamation text-danger me-2"></i> CivicConnect Crisis Hub
+        </a>
+
+        <div class="d-flex align-items-center gap-2">
+            {% if logged_in %}
+                <a href="{{ url_for('dashboard') }}" class="btn btn-outline-light btn-sm">
+                    <i class="bi bi-speedometer2 me-1"></i> Dashboard
+                </a>
+                <a href="{{ url_for('notifications_view') }}" class="btn btn-outline-light btn-sm">
+                    <i class="bi bi-bell-fill me-1"></i> Notifications
+                </a>
+            {% else %}
+                <a href="{{ url_for('landing') }}" class="btn btn-outline-light btn-sm">
+                    <i class="bi bi-house-door-fill me-1"></i> Home
+                </a>
+                <a href="{{ url_for('auth', role='citizen') }}" class="btn btn-primary btn-sm">
+                    Log In
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</nav>
+
+<div class="container py-4">
+
+    <!-- Active Emergency Alert or All-Clear Hero Banner -->
+    {% if active_alert %}
+        <div class="crisis-hero-active mb-5">
+            <div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="siren-badge-glow">
+                        <i class="bi bi-broadcast"></i>
+                    </div>
+                    <div>
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <span class="badge bg-danger px-3 py-1 fw-bold text-uppercase fs-6">🔴 ACTIVE EMERGENCY BROADCAST</span>
+                            <span class="badge bg-dark px-3 py-1">{{ active_alert.severity }}</span>
+                        </div>
+                        <h1 class="display-6 fw-bold mb-0 text-white">{{ active_alert.title }}</h1>
+                    </div>
+                </div>
+
+                <div class="text-md-end">
+                    <span class="badge bg-black bg-opacity-40 text-white-50 p-2 px-3 small">
+                        <i class="bi bi-clock me-1"></i> Issued: {{ active_alert.created_at.strftime("%b %d, %Y - %H:%M") if active_alert.created_at else "Active" }}
+                    </span>
+                </div>
+            </div>
+
+            <div class="bg-dark bg-opacity-35 p-3 rounded-3 border border-white border-opacity-20 mb-4">
+                <h5 class="fw-bold text-warning mb-2">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i> Public Safety Directives & Instructions:
+                </h5>
+                <p class="fs-6 mb-0 text-white text-opacity-90" style="white-space: pre-line; line-height: 1.6;">
+                    {{ active_alert.message }}
+                </p>
+            </div>
+
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="fw-bold text-white">Emergency Hotline:</span>
+                    <a href="tel:{{ active_alert.helpline.split('/')[0].strip() }}" class="btn btn-light fw-bold text-danger px-3 shadow-sm rounded-pill">
+                        <i class="bi bi-telephone-fill me-1"></i> Call {{ active_alert.helpline }}
+                    </a>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('report') }}" class="btn btn-warning fw-bold text-dark px-3 shadow-sm">
+                        <i class="bi bi-shield-fill-exclamation me-1"></i> Report SOS Hazard
+                    </a>
+                    {% if role == 'municipal' %}
+                        <a href="{{ url_for('municipal_emergency') }}" class="btn btn-outline-light px-3">
+                            <i class="bi bi-gear-fill me-1"></i> Command Center
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="crisis-hero-clear mb-5">
+            <div class="row align-items-center g-3">
+                <div class="col-md-8">
+                    <span class="badge bg-success bg-opacity-75 text-white mb-2 px-3 py-1 small">
+                        <i class="bi bi-shield-check me-1"></i> Civil Safety Status: Normal Conditions
+                    </span>
+                    <h1 class="display-6 fw-bold mb-2">Municipal Civil Defense Hub</h1>
+                    <p class="mb-0 text-white text-opacity-90 small">
+                        No active disaster or city-wide emergency broadcasts are in effect. Use this emergency portal to access 24/7 helplines, learn safety protocols, or report severe hazards.
+                    </p>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <a href="{{ url_for('report') }}" class="btn btn-warning fw-bold text-dark px-3 shadow-sm">
+                        <i class="bi bi-shield-fill-exclamation me-1"></i> Report SOS Hazard
+                    </a>
+                    {% if role == 'municipal' %}
+                        <a href="{{ url_for('municipal_emergency') }}" class="btn btn-outline-light ms-2 px-3">
+                            <i class="bi bi-gear-fill me-1"></i> Command
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- 24/7 Crisis Helplines Directory -->
+    <div class="mb-5">
+        <h4 class="fw-bold mb-3 text-dark">
+            <i class="bi bi-telephone-outbound-fill text-danger me-2"></i> 24/7 Crisis & Emergency Helplines
+        </h4>
+        <div class="row g-3">
+            <div class="col-md-2 col-sm-4 col-6">
+                <div class="helpline-box">
+                    <div class="text-danger fs-2 mb-1"><i class="bi bi-shield-fill"></i></div>
+                    <div class="fw-bold fs-5 text-dark">112</div>
+                    <div class="small text-muted">National Emergency</div>
+                    <a href="tel:112" class="btn btn-sm btn-outline-danger w-100 mt-2">Dial</a>
+                </div>
+            </div>
+            <div class="col-md-2 col-sm-4 col-6">
+                <div class="helpline-box">
+                    <div class="text-danger fs-2 mb-1"><i class="bi bi-hospital-fill"></i></div>
+                    <div class="fw-bold fs-5 text-dark">108</div>
+                    <div class="small text-muted">Ambulance Service</div>
+                    <a href="tel:108" class="btn btn-sm btn-outline-danger w-100 mt-2">Dial</a>
+                </div>
+            </div>
+            <div class="col-md-2 col-sm-4 col-6">
+                <div class="helpline-box">
+                    <div class="text-danger fs-2 mb-1"><i class="bi bi-fire"></i></div>
+                    <div class="fw-bold fs-5 text-dark">101</div>
+                    <div class="small text-muted">Fire & Rescue</div>
+                    <a href="tel:101" class="btn btn-sm btn-outline-danger w-100 mt-2">Dial</a>
+                </div>
+            </div>
+            <div class="col-md-2 col-sm-4 col-6">
+                <div class="helpline-box">
+                    <div class="text-danger fs-2 mb-1"><i class="bi bi-cloud-lightning-rain-fill"></i></div>
+                    <div class="fw-bold fs-5 text-dark">1077</div>
+                    <div class="small text-muted">Disaster Response</div>
+                    <a href="tel:1077" class="btn btn-sm btn-outline-danger w-100 mt-2">Dial</a>
+                </div>
+            </div>
+            <div class="col-md-2 col-sm-4 col-6">
+                <div class="helpline-box">
+                    <div class="text-danger fs-2 mb-1"><i class="bi bi-gender-female"></i></div>
+                    <div class="fw-bold fs-5 text-dark">1091</div>
+                    <div class="small text-muted">Women Helpline</div>
+                    <a href="tel:1091" class="btn btn-sm btn-outline-danger w-100 mt-2">Dial</a>
+                </div>
+            </div>
+            <div class="col-md-2 col-sm-4 col-6">
+                <div class="helpline-box">
+                    <div class="text-danger fs-2 mb-1"><i class="bi bi-megaphone-fill"></i></div>
+                    <div class="fw-bold fs-6 text-dark text-truncate">1800-CIVIC</div>
+                    <div class="small text-muted">Civic Helpline</div>
+                    <a href="tel:180024842253" class="btn btn-sm btn-outline-danger w-100 mt-2">Dial</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Safety Action Guides -->
+    <div class="mb-5">
+        <h4 class="fw-bold mb-3 text-dark">
+            <i class="bi bi-book-half text-primary me-2"></i> Citizen Safety Action Protocols
+        </h4>
+        <div class="row g-4">
+            <div class="col-md-3 col-sm-6">
+                <div class="guide-card">
+                    <div class="text-primary fs-3 mb-2"><i class="bi bi-water"></i></div>
+                    <h5 class="fw-bold">Flash Floods & Waterlogging</h5>
+                    <p class="small text-muted mb-0">
+                        Never drive through flooded underpasses or walk through moving water. Avoid basement parking during red-alert storms and move to higher elevations.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="guide-card">
+                    <div class="text-warning fs-3 mb-2"><i class="bi bi-lightning-charge-fill"></i></div>
+                    <h5 class="fw-bold">Exposed Live Wires</h5>
+                    <p class="small text-muted mb-0">
+                        Stay at least 10 meters away from snapped wires or sagging power cables. Report immediately as an Emergency SOS and alert pedestrians in the vicinity.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="guide-card">
+                    <div class="text-danger fs-3 mb-2"><i class="bi bi-exclamation-diamond-fill"></i></div>
+                    <h5 class="fw-bold">Gas Leak / Toxic Spills</h5>
+                    <p class="small text-muted mb-0">
+                        Evacuate upwind of the odor. Do not turn electrical switches or vehicles on or off. Extinguish all open flames and call emergency responders immediately.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="guide-card">
+                    <div class="text-info fs-3 mb-2"><i class="bi bi-building-exclamation"></i></div>
+                    <h5 class="fw-bold">Structural Collapse</h5>
+                    <p class="small text-muted mb-0">
+                        Evacuate compromised structures immediately. Keep clear of overhead balconies, power poles, and large trees during severe storms and seismic events.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Past Emergency Broadcasts -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-dark text-white py-3 d-flex align-items-center justify-content-between">
+            <h5 class="fw-bold mb-0">
+                <i class="bi bi-clock-history me-2"></i> Recent Emergency Broadcast History
+            </h5>
+            <span class="badge bg-secondary">{{ past_alerts|length }} Records</span>
+        </div>
+        <div class="card-body p-0">
+            {% if past_alerts %}
+                <div class="list-group list-group-flush">
+                    {% for p in past_alerts %}
+                        <div class="list-group-item p-3">
+                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                <h6 class="fw-bold mb-0 text-dark">{{ p.title }}</h6>
+                                <span class="badge bg-secondary-subtle text-secondary small">{{ p.severity }}</span>
+                            </div>
+                            <p class="small text-muted mb-2">{{ p.message }}</p>
+                            <div class="d-flex align-items-center justify-content-between small text-muted">
+                                <span><i class="bi bi-calendar-event me-1"></i> Broadcasted: {{ p.created_at.strftime("%b %d, %Y %H:%M") }}</span>
+                                {% if p.resolved_at %}
+                                    <span class="text-success"><i class="bi bi-check-circle me-1"></i> Lifted: {{ p.resolved_at.strftime("%b %d, %H:%M") }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-shield-check display-4 text-success opacity-50 mb-2"></i>
+                    <p class="mb-0">No past emergency broadcasts recorded.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+
+<!-- Footer -->
+<footer class="bg-dark text-white text-center py-4 mt-5">
+    <div class="container">
+        <p class="text-white-50 small mb-0">
+            CivicConnect Civil Safety & Emergency Operations &copy; 2026. Official municipal emergency network.
+        </p>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

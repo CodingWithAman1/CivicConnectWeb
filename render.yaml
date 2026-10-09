@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: civicconnect
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: SQLALCHEMY_DATABASE_URI
+        value: sqlite:///users.db
+      - key: MAX_CONTENT_LENGTH
+        value: 16777216
+      - key: DUPLICATE_RADIUS_KM
+        value: 0.3
+      - key: GEMINI_API_KEY
+        sync: false

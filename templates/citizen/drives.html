@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Volunteer Drives | CivicConnect</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <style>
+        .hero{
+            background:linear-gradient(135deg,#fd7e14,#ffc107);
+            color:white;
+            border-radius:18px;
+            padding:35px;
+        }
+
+        .drive-card{
+            border:none;
+            border-radius:18px;
+            transition:.3s;
+        }
+
+        .drive-card:hover{
+            transform:translateY(-5px);
+            box-shadow:0 12px 30px rgba(0,0,0,.12);
+        }
+    </style>
+</head>
+
+<body class="bg-light">
+
+<nav class="navbar navbar-dark bg-primary shadow">
+    <div class="container">
+
+        <a href="{{ url_for('dashboard') }}" class="navbar-brand fw-bold">
+            <i class="bi bi-buildings-fill"></i>
+            CivicConnect
+        </a>
+
+        <div>
+            <span class="text-white me-3">
+                <i class="bi bi-person-circle"></i>
+                {{ username }}
+            </span>
+
+            <a href="{{ url_for('dashboard') }}" class="btn btn-light btn-sm">
+                Dashboard
+            </a>
+        </div>
+
+    </div>
+</nav>
+
+<div class="container py-4">
+
+    <div class="hero mb-4">
+
+        <h2>
+            <i class="bi bi-people-fill"></i>
+            Volunteer Drives
+        </h2>
+
+        <p class="mb-0">
+            Join community clean-up and awareness drives near you.
+        </p>
+
+    </div>
+
+    {% if drives %}
+
+    <div class="row g-4">
+
+        {% for drive in drives %}
+
+        <div class="col-lg-6">
+
+            <div class="card drive-card shadow h-100">
+
+                <div class="card-body">
+
+                    <h4>{{ drive.title }}</h4>
+
+                    <hr>
+
+                    <p>{{ drive.description }}</p>
+
+                    <p>
+                        <i class="bi bi-geo-alt-fill text-danger"></i>
+                        {{ drive.meeting_point }}
+                    </p>
+
+                    <p>
+                        <i class="bi bi-calendar-event"></i>
+                        {{ drive.drive_date }}
+                        &nbsp;
+                        <i class="bi bi-clock"></i>
+                        {{ drive.drive_time }}
+                    </p>
+
+                    {% if drive.instructions %}
+                    <p>
+                        <i class="bi bi-info-circle"></i>
+                        {{ drive.instructions }}
+                    </p>
+                    {% endif %}
+
+                    <p>
+                        <strong>Volunteers:</strong>
+                        {{ drive.joined_count }} / {{ drive.volunteers_needed }} joined
+                    </p>
+
+                    {% if drive.contact %}
+                    <p>
+                        <strong>Contact:</strong>
+                        {{ drive.contact }}
+                    </p>
+                    {% endif %}
+
+                    <div class="d-grid">
+
+                        {% if drive.id in joined_drive_ids %}
+
+                        <button class="btn btn-secondary" disabled>
+                            <i class="bi bi-check-circle-fill"></i>
+                            Already Joined
+                        </button>
+
+                        {% elif drive.joined_count >= drive.volunteers_needed %}
+
+                        <button class="btn btn-secondary" disabled>
+                            Drive Full
+                        </button>
+
+                        {% else %}
+
+                        <a href="{{ url_for('join_drive', drive_id=drive.id) }}"
+                           class="btn btn-warning text-dark fw-bold">
+                            <i class="bi bi-hand-thumbs-up-fill"></i>
+                            Join Drive
+                        </a>
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+    {% else %}
+
+    <div class="card shadow">
+
+        <div class="card-body text-center py-5">
+
+            <i class="bi bi-megaphone" style="font-size:70px;color:#fd7e14;"></i>
+
+            <h3 class="mt-3">No Open Drives Right Now</h3>
+
+            <p class="text-muted">
+                Check back soon — NGOs regularly post new volunteer drives.
+            </p>
+
+        </div>
+
+    </div>
+
+    {% endif %}
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

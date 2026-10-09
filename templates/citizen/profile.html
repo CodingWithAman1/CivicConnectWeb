@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>My Profile | CivicConnect</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+          rel="stylesheet">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+
+    <style>
+
+        body {
+
+            background: #f4f7fb;
+
+        }
+
+
+        .navbar {
+
+            background: linear-gradient(
+                90deg,
+                #0759d6,
+                #0d6efd
+            ) !important;
+
+        }
+
+
+        .profile-card {
+
+            border: none;
+
+            border-radius: 20px;
+
+            overflow: hidden;
+
+        }
+
+
+        .profile-header {
+
+            background: linear-gradient(
+                135deg,
+                #0d6efd,
+                #4b9bff
+            );
+
+            color: white;
+
+            padding: 40px 20px;
+
+            text-align: center;
+
+        }
+
+
+        .profile-icon {
+
+            width: 100px;
+
+            height: 100px;
+
+            border-radius: 50%;
+
+            background: rgba(255,255,255,.2);
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            margin: auto;
+
+            border: 3px solid rgba(255,255,255,.5);
+
+        }
+
+
+        .profile-icon i {
+
+            font-size: 4rem;
+
+        }
+
+
+        .profile-header h2 {
+
+            margin-top: 15px;
+
+            font-weight: 700;
+
+        }
+
+
+        .role-badge {
+
+            display: inline-block;
+
+            background: rgba(255,255,255,.2);
+
+            padding: 6px 15px;
+
+            border-radius: 30px;
+
+            font-size: .9rem;
+
+        }
+
+
+        .form-label {
+
+            font-weight: 600;
+
+        }
+
+
+        .form-control {
+
+            border-radius: 10px;
+
+            padding: 11px 13px;
+
+        }
+
+
+        .form-control:focus {
+
+            box-shadow: 0 0 0 .2rem rgba(13,110,253,.12);
+
+        }
+
+
+        .info-card {
+
+            background: #f8f9fa;
+
+            border-radius: 12px;
+
+            padding: 15px;
+
+        }
+
+
+        .info-icon {
+
+            width: 45px;
+
+            height: 45px;
+
+            border-radius: 10px;
+
+            background: rgba(13,110,253,.1);
+
+            color: #0d6efd;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            font-size: 1.3rem;
+
+        }
+
+
+        .danger-box {
+
+            background: #fff5f5;
+
+            border: 1px solid #f5c2c7;
+
+            border-radius: 12px;
+
+            padding: 15px;
+
+        }
+
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<!-- NAVBAR -->
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow">
+
+    <div class="container">
+
+        <a class="navbar-brand fw-bold"
+           href="{{ url_for('dashboard') }}">
+
+            <i class="bi bi-buildings-fill me-1"></i>
+
+            CivicConnect
+
+        </a>
+
+
+        <div class="d-flex align-items-center">
+
+            <a
+                href="{{ url_for('dashboard') }}"
+                class="btn btn-light btn-sm me-2">
+
+                <i class="bi bi-house-fill me-1"></i>
+
+                Dashboard
+
+            </a>
+
+
+            <a
+                href="{{ url_for('logout') }}"
+                class="btn btn-outline-light btn-sm">
+
+                <i class="bi bi-box-arrow-right me-1"></i>
+
+                Logout
+
+            </a>
+
+        </div>
+
+    </div>
+
+</nav>
+
+
+<!-- MAIN -->
+
+<div class="container py-5">
+
+
+    <div class="row justify-content-center">
+
+        <div class="col-lg-8">
+
+
+            <div class="card shadow profile-card">
+
+
+                <!-- PROFILE HEADER -->
+
+                <div class="profile-header">
+
+
+                    <div class="profile-icon">
+
+                        <i class="bi bi-person-fill"></i>
+
+                    </div>
+
+
+                    <h2>
+
+                        My Profile
+
+                    </h2>
+
+
+                    <div class="role-badge">
+
+                        <i class="bi bi-person-badge me-1"></i>
+
+                        {{ role|capitalize }}
+
+                    </div>
+
+
+                </div>
+
+
+                <div class="card-body p-4 p-md-5">
+
+
+                    <!-- MESSAGE -->
+
+                    {% if message %}
+
+                    <div class="alert alert-{{ category }}">
+
+                        {% if category == "success" %}
+
+                        <i class="bi bi-check-circle-fill me-2"></i>
+
+                        {% else %}
+
+                        <i class="bi bi-exclamation-circle-fill me-2"></i>
+
+                        {% endif %}
+
+                        {{ message }}
+
+                    </div>
+
+                    {% endif %}
+
+
+                    <!-- ACCOUNT INFORMATION -->
+
+                    <h5 class="fw-bold mb-3">
+
+                        <i class="bi bi-person-lines-fill text-primary me-2"></i>
+
+                        Account Information
+
+                    </h5>
+
+
+                    <div class="info-card mb-4">
+
+                        <div class="d-flex align-items-center">
+
+                            <div class="info-icon me-3">
+
+                                <i class="bi bi-shield-check"></i>
+
+                            </div>
+
+                            <div>
+
+                                <div class="text-muted small">
+
+                                    Account Type
+
+                                </div>
+
+                                <strong>
+
+                                    {{ role|capitalize }}
+
+                                </strong>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- FORM -->
+
+                    <form method="POST">
+
+
+                        <!-- USERNAME -->
+
+                        <div class="mb-4">
+
+                            <label class="form-label">
+
+                                Username
+
+                            </label>
+
+
+                            <div class="input-group">
+
+                                <span class="input-group-text">
+
+                                    <i class="bi bi-person"></i>
+
+                                </span>
+
+
+                                <input
+                                    type="text"
+                                    name="username"
+                                    class="form-control"
+                                    value="{{ username }}"
+                                    required>
+
+                            </div>
+
+                        </div>
+
+
+                        <hr class="my-4">
+
+
+                        <!-- PASSWORD -->
+<h5 class="fw-bold mb-3">
+
+    <i class="bi bi-lock-fill text-primary me-2"></i>
+
+    Change Password
+
+</h5>
+
+<p class="text-muted small">
+
+    To change your password, enter your current password first.
+
+</p>
+
+
+<!-- CURRENT PASSWORD -->
+
+<div class="mb-3">
+
+    <label class="form-label">
+
+        Current Password
+
+    </label>
+
+    <div class="input-group">
+
+        <span class="input-group-text">
+
+            <i class="bi bi-shield-lock"></i>
+
+        </span>
+
+        <input
+            type="password"
+            name="current_password"
+            class="form-control"
+            placeholder="Enter current password">
+
+    </div>
+
+</div>
+
+
+<!-- NEW PASSWORD -->
+
+<div class="mb-3">
+
+    <label class="form-label">
+
+        New Password
+
+    </label>
+
+    <div class="input-group">
+
+        <span class="input-group-text">
+
+            <i class="bi bi-key"></i>
+
+        </span>
+
+        <input
+            type="password"
+            name="new_password"
+            class="form-control"
+            placeholder="Enter new password"
+            minlength="6">
+
+    </div>
+
+</div>
+
+
+<!-- CONFIRM PASSWORD -->
+
+<div class="mb-4">
+
+    <label class="form-label">
+
+        Confirm New Password
+
+    </label>
+
+    <div class="input-group">
+
+        <span class="input-group-text">
+
+            <i class="bi bi-key-fill"></i>
+
+        </span>
+
+        <input
+            type="password"
+            name="confirm_password"
+            class="form-control"
+            placeholder="Confirm new password"
+            minlength="6">
+
+    </div>
+
+</div>
+
+
+
+                        <!-- SAVE -->
+
+                        <div class="d-flex justify-content-end gap-2">
+
+
+                            <a
+                                href="{{ url_for('dashboard') }}"
+                                class="btn btn-secondary">
+
+                                <i class="bi bi-arrow-left me-1"></i>
+
+                                Cancel
+
+                            </a>
+
+
+                            <button
+                                type="submit"
+                                class="btn btn-primary px-4">
+
+                                <i class="bi bi-check-lg me-1"></i>
+
+                                Save Changes
+
+                            </button>
+
+
+                        </div>
+
+
+                    </form>
+
+
+                    <hr class="my-4">
+
+
+                    <!-- SECURITY -->
+
+                    <div class="danger-box">
+
+                        <div class="d-flex">
+
+                            <i class="bi bi-shield-lock-fill text-danger fs-4 me-3"></i>
+
+                            <div>
+
+                                <strong>
+
+                                    Account Security
+
+                                </strong>
+
+                                <p class="text-muted small mb-0 mt-1">
+
+                                    Keep your password private and
+                                    never share your login credentials.
+
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ role }} Portal Authentication | CivicConnect</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <style>
+        body {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .auth-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 15px;
+        }
+        .auth-card {
+            background: var(--bg-surface);
+            border-radius: 24px;
+            border: 1px solid var(--border-subtle);
+            box-shadow: 0 20px 40px -15px rgba(0,0,0,0.08);
+            overflow: hidden;
+            width: 100%;
+            max-width: 960px;
+        }
+        .auth-brand-side {
+            padding: 45px;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+        }
+        .brand-citizen {
+            background: linear-gradient(145deg, #1e40af 0%, #2563eb 50%, #3b82f6 100%);
+        }
+        .brand-ngo {
+            background: linear-gradient(145deg, #065f46 0%, #059669 50%, #10b981 100%);
+        }
+        .brand-municipal {
+            background: linear-gradient(145deg, #090d16 0%, #0f172a 60%, #1e293b 100%);
+        }
+        .auth-form-side {
+            padding: 45px 40px;
+        }
+        .role-pill {
+            font-size: 0.82rem;
+            font-weight: 600;
+            padding: 6px 14px;
+            border-radius: 9999px;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+        .nav-tabs-auth {
+            border-bottom: 2px solid #f1f5f9;
+            margin-bottom: 25px;
+        }
+        .nav-tabs-auth .nav-link {
+            border: none;
+            color: #64748b;
+            font-weight: 600;
+            padding: 10px 20px;
+            border-radius: 0;
+            position: relative;
+        }
+        .nav-tabs-auth .nav-link.active {
+            color: var(--primary);
+            background: transparent;
+        }
+        .nav-tabs-auth .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 2.5px;
+            background: var(--primary);
+            border-radius: 2px;
+        }
+        .password-toggle-btn {
+            border-left: none;
+            cursor: pointer;
+            background: var(--bg-surface);
+            color: var(--text-muted);
+            border-color: var(--border-medium);
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- Minimal Clean Navbar -->
+<nav class="navbar navbar-expand-lg bg-white shadow-sm py-2">
+    <div class="container">
+        <a class="navbar-brand fw-bold text-dark" href="/">
+            <div class="bg-primary text-white p-2 rounded-2 d-inline-flex align-items-center justify-content-center shadow-sm" style="width: 32px; height: 32px;">
+                <i class="bi bi-buildings-fill"></i>
+            </div>
+            <span class="ms-2">Civic<span class="text-primary">Connect</span></span>
+        </a>
+        <div class="d-flex align-items-center gap-2">
+            <span class="small text-muted d-none d-sm-inline">Switch Portal:</span>
+            <a href="/auth/citizen" class="role-pill {% if role_value == 'citizen' %}bg-primary text-white shadow-sm{% else %}bg-light text-muted border{% endif %}">
+                <i class="bi bi-person me-1"></i> Citizen
+            </a>
+            <a href="/auth/ngo" class="role-pill {% if role_value == 'ngo' %}bg-success text-white shadow-sm{% else %}bg-light text-muted border{% endif %}">
+                <i class="bi bi-heart me-1"></i> NGO
+            </a>
+            <a href="/auth/municipal" class="role-pill {% if role_value == 'municipal' %}bg-dark text-white shadow-sm{% else %}bg-light text-muted border{% endif %}">
+                <i class="bi bi-building me-1"></i> Municipal
+            </a>
+        </div>
+    </div>
+</nav>
+
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <div class="row g-0">
+            
+            <!-- Left Info Panel -->
+            <div class="col-lg-5 auth-brand-side brand-{{ role_value }} d-none d-lg-flex">
+                <div>
+                    <span class="badge bg-white bg-opacity-20 text-white border border-white border-opacity-25 px-3 py-2 rounded-pill small mb-4">
+                        {% if role_value == 'citizen' %}Citizen Space
+                        {% elif role_value == 'ngo' %}Community Partner Space
+                        {% else %}Municipal Headquarters{% endif %}
+                    </span>
+                    <h2 class="display-6 fw-bold mb-3 text-white">{{ role }} Gateway</h2>
+                    <p class="text-white text-opacity-80 small mb-4">
+                        {% if role_value == 'citizen' %}
+                            Report issues with one click, get real-time AI category matching, and confirm repairs directly from your phone.
+                        {% elif role_value == 'ngo' %}
+                            Mobilize volunteers, launch civic improvement drives, raise community funds, and resolve local issues.
+                        {% else %}
+                            Unified municipal console for departmental dispatch, heatmaps, SLA tracking, and multimodal AI work proof verification.
+                        {% endif %}
+                    </p>
+                </div>
+
+                <div class="p-3 rounded-3 bg-white bg-opacity-10 border border-white border-opacity-15 small">
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <i class="bi bi-shield-check text-white fs-5"></i>
+                        <span class="fw-bold">Security Standard</span>
+                    </div>
+                    <span class="text-white text-opacity-75">Encrypted sessions with role-based access authorization.</span>
+                </div>
+            </div>
+
+            <!-- Right Form Panel -->
+            <div class="col-lg-7 auth-form-side">
+                
+                <div class="mb-4">
+                    <h3 class="fw-bold mb-1">{{ role }} Access</h3>
+                    <p class="text-muted small">Sign in to your account or register a new one to continue.</p>
+                </div>
+
+                <!-- Flash / Feedback Messages -->
+                {% with flashed = get_flashed_messages(with_categories=true) %}
+                    {% if flashed %}
+                        {% for cat, msg in flashed %}
+                        <div class="alert alert-{{ cat }} alert-dismissible fade show small py-2 rounded-3 shadow-sm" role="alert">
+                            {{ msg }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                {% if message %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show small py-2 rounded-3 shadow-sm" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endif %}
+
+                <!-- Tabs: Login vs Register -->
+                <ul class="nav nav-tabs nav-tabs-auth" id="authTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#login-pane" type="button" role="tab">
+                            <i class="bi bi-box-arrow-in-right me-1"></i> Sign In
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="register-tab" data-bs-toggle="tab" data-bs-target="#register-pane" type="button" role="tab">
+                            <i class="bi bi-person-plus me-1"></i> Create Account
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="authTabsContent">
+                    
+                    <!-- Login Pane -->
+                    <div class="tab-pane fade show active" id="login-pane" role="tabpanel">
+                        <form method="POST">
+                            <input type="hidden" name="action" value="login">
+
+                            <div class="mb-3">
+                                <label class="form-label">Username</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-person"></i></span>
+                                    <input type="text" name="username" class="form-control border-start-0" placeholder="Enter your username" required autofocus>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label">Password</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-lock"></i></span>
+                                    <input type="password" name="password" id="loginPassword" class="form-control border-start-0 border-end-0" placeholder="Enter password" required>
+                                    <button class="btn btn-outline-secondary password-toggle-btn border" type="button" onclick="togglePassword('loginPassword', this)">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-{{ color }} w-100 py-2 shadow-sm mb-3">
+                                <i class="bi bi-box-arrow-in-right me-1"></i> Sign In to {{ role }} Portal
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Register Pane -->
+                    <div class="tab-pane fade" id="register-pane" role="tabpanel">
+                        <form method="POST">
+                            <input type="hidden" name="action" value="register">
+
+                            <div class="mb-3">
+                                <label class="form-label">Choose Username</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-person-badge"></i></span>
+                                    <input type="text" name="username" class="form-control border-start-0" placeholder="Unique username" required>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Password</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-lock"></i></span>
+                                    <input type="password" name="password" id="regPassword" class="form-control border-start-0 border-end-0" placeholder="At least 6 characters" required>
+                                    <button class="btn btn-outline-secondary password-toggle-btn border" type="button" onclick="togglePassword('regPassword', this)">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label">Confirm Password</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-lock-fill"></i></span>
+                                    <input type="password" name="confirm_password" id="regConfirmPassword" class="form-control border-start-0 border-end-0" placeholder="Re-enter password" required>
+                                    <button class="btn btn-outline-secondary password-toggle-btn border" type="button" onclick="togglePassword('regConfirmPassword', this)">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-{{ color }} w-100 py-2 shadow-sm mb-3">
+                                <i class="bi bi-person-check-fill me-1"></i> Register as {{ role }}
+                            </button>
+                        </form>
+                    </div>
+
+                </div>
+
+                <div class="text-center pt-3 border-top mt-4">
+                    <a href="/" class="text-decoration-none small text-muted">
+                        <i class="bi bi-arrow-left me-1"></i> Return to CivicConnect Homepage
+                    </a>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    function togglePassword(inputId, btn) {
+        const input = document.getElementById(inputId);
+        const icon = btn.querySelector('i');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('bi-eye');
+            icon.classList.add('bi-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.remove('bi-eye-slash');
+            icon.classList.add('bi-eye-eye');
+            icon.classList.add('bi-eye');
+        }
+    }
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Drive Volunteers</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+</head>
+
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-success shadow">
+
+<div class="container">
+
+<a class="navbar-brand fw-bold" href="{{ url_for('dashboard') }}">
+<i class="bi bi-buildings-fill"></i>
+CivicConnect NGO
+</a>
+
+<span class="text-white">
+<i class="bi bi-person-circle"></i>
+{{ username }}
+</span>
+
+</div>
+
+</nav>
+
+<div class="container py-5">
+
+<h2>{{ drive.title }}</h2>
+
+<p class="text-muted">
+{{ volunteers|length }} / {{ drive.volunteers_needed }} volunteers joined
+</p>
+
+<hr>
+
+{% if volunteers %}
+
+<table class="table table-striped">
+
+<thead>
+
+<tr>
+
+<th>#</th>
+
+<th>Volunteer</th>
+
+<th>Joined On</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for volunteer in volunteers %}
+
+<tr>
+
+<td>{{ loop.index }}</td>
+
+<td>
+<i class="bi bi-person-circle"></i>
+{{ volunteer.citizen.username }}
+</td>
+
+<td>{{ volunteer.joined_at.strftime('%d %b %Y %I:%M %p') }}</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+{% else %}
+
+<div class="alert alert-warning">
+
+No volunteers have joined this drive yet.
+
+</div>
+
+{% endif %}
+
+<a href="{{ url_for('volunteer_drives') }}"
+class="btn btn-success">
+
+<i class="bi bi-arrow-left"></i>
+
+Back
+
+</a>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+
+</html>

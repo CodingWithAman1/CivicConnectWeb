@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>My Reported Issues | CivicConnect</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <style>
+        .complaint-card {
+            border: none;
+            border-radius: 16px;
+            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .complaint-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08) !important;
+        }
+        .img-compare-box {
+            position: relative;
+            background: #212529;
+            height: 240px;
+        }
+        .img-compare-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .badge-hazard-critical { background: #dc3545; color: white; }
+        .badge-hazard-high { background: #fd7e14; color: white; }
+        .badge-hazard-medium { background: #0dcaf0; color: #212529; }
+        .badge-hazard-low { background: #198754; color: white; }
+
+        /* Lifecycle Progress Stepper */
+        .stepper-box {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+            margin: 15px 0;
+            padding: 0 10px;
+        }
+        .step-item {
+            text-align: center;
+            z-index: 2;
+            background: var(--bg-surface);
+            padding: 0 5px;
+        }
+        .step-circle {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            background: #e9ecef;
+            color: #6c757d;
+        }
+        .step-active .step-circle {
+            background: #0d6efd;
+            color: white;
+        }
+        .step-done .step-circle {
+            background: #198754;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="{{ url_for('dashboard') }}">
+            <i class="bi bi-buildings-fill me-1"></i> CivicConnect
+        </a>
+        <div class="d-flex align-items-center">
+            <span class="text-white me-3 d-none d-sm-inline">
+                <i class="bi bi-person-circle me-1"></i> {{ username }}
+            </span>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-light btn-sm me-2">
+                <i class="bi bi-speedometer2 me-1"></i> Dashboard
+            </a>
+            <a href="{{ url_for('report') }}" class="btn btn-warning btn-sm fw-semibold text-dark">
+                <i class="bi bi-plus-circle-fill me-1"></i> Report New
+            </a>
+        </div>
+    </div>
+</nav>
+
+<div class="container py-4">
+
+    <!-- Flash Notifications -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, msg in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm" role="alert">
+                    {{ msg }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="bi bi-folder2-open text-primary me-2"></i>My Reported Issues</h2>
+            <p class="text-muted mb-0">Track lifecycle progress, inspect completion proof, and confirm resolutions.</p>
+        </div>
+        <div>
+            <a href="{{ url_for('nearby') }}" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-geo-alt me-1"></i> View Nearby Map
+            </a>
+        </div>
+    </div>
+
+    <!-- Statistics Overview -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card text-center border-0 shadow-sm p-3 bg-white rounded-3">
+                <span class="text-muted small text-uppercase fw-semibold">Pending Review</span>
+                <h2 class="text-warning fw-bold mb-0 mt-1">{{ pending }}</h2>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center border-0 shadow-sm p-3 bg-white rounded-3">
+                <span class="text-muted small text-uppercase fw-semibold">In Progress</span>
+                <h2 class="text-primary fw-bold mb-0 mt-1">{{ in_progress }}</h2>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center border-0 shadow-sm p-3 bg-white rounded-3">
+                <span class="text-muted small text-uppercase fw-semibold">Resolved</span>
+                <h2 class="text-success fw-bold mb-0 mt-1">{{ resolved }}</h2>
+            </div>
+        </div>
+    </div>
+
+    {% if complaints %}
+    <div class="row g-4">
+        {% for complaint in complaints %}
+        <div class="col-lg-6">
+            <div class="card complaint-card shadow-sm h-100 bg-white">
+                
+                <!-- Images Area: Before & After comparison if available -->
+                {% if complaint.after_image %}
+                <div class="row g-0">
+                    <div class="col-6 img-compare-box border-end position-relative">
+                        <img src="{{ url_for('static', filename='uploads/' + complaint.image) if complaint.image else 'https://via.placeholder.com/300?text=No+Before+Image' }}" alt="Before">
+                        <span class="position-absolute bottom-0 start-0 m-2 badge bg-dark opacity-75">Before</span>
+                    </div>
+                    <div class="col-6 img-compare-box position-relative">
+                        <img src="{{ url_for('static', filename='uploads/' + complaint.after_image) }}" alt="After Proof">
+                        <span class="position-absolute bottom-0 end-0 m-2 badge bg-success">Resolution Proof</span>
+                    </div>
+                </div>
+                {% elif complaint.image %}
+                <div class="img-compare-box">
+                    <img src="{{ url_for('static', filename='uploads/' + complaint.image) }}" alt="Issue Photo">
+                </div>
+                {% endif %}
+
+                <div class="card-body p-4">
+                    <!-- Badges Row -->
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+                        <span class="badge bg-secondary-subtle text-dark border">
+                            <i class="bi bi-tag me-1"></i>{{ complaint.category }}
+                        </span>
+                        
+                        <!-- Severity Badge -->
+                        {% set sev = complaint.severity or 'Medium' %}
+                        <span class="badge {% if sev == 'Critical Hazard' %}badge-hazard-critical{% elif sev == 'High' %}badge-hazard-high{% elif sev == 'Low' %}badge-hazard-low{% else %}badge-hazard-medium{% endif %}">
+                            <i class="bi bi-shield-exclamation me-1"></i>{{ sev }}
+                        </span>
+
+                        <!-- Department Badge -->
+                        <span class="badge bg-light text-muted border">
+                            <i class="bi bi-building me-1"></i>{{ complaint.department or 'General' }}
+                        </span>
+                    </div>
+
+                    <h5 class="fw-bold mb-2">{{ complaint.title }}</h5>
+                    <p class="text-muted small mb-3">{{ complaint.description }}</p>
+
+                    <p class="small text-muted mb-2">
+                        <i class="bi bi-geo-alt-fill text-danger me-1"></i><strong>Location:</strong> {{ complaint.location }}
+                    </p>
+
+                    <!-- Status Stepper -->
+                    <div class="stepper-box my-3 py-2 border rounded-3 bg-light">
+                        <div class="step-item step-done">
+                            <span class="step-circle"><i class="bi bi-check"></i></span>
+                            <div class="small fw-semibold mt-1">Reported</div>
+                        </div>
+                        <div class="step-item {% if complaint.status in ['In Progress', 'Completed', 'Verified'] %}step-done{% else %}step-item{% endif %}">
+                            <span class="step-circle">{% if complaint.status in ['In Progress', 'Completed', 'Verified'] %}<i class="bi bi-check"></i>{% else %}2{% endif %}</span>
+                            <div class="small fw-semibold mt-1">Assigned</div>
+                        </div>
+                        <div class="step-item {% if complaint.status in ['Completed', 'Verified'] %}step-done{% elif complaint.status == 'In Progress' %}step-active{% else %}step-item{% endif %}">
+                            <span class="step-circle">{% if complaint.status in ['Completed', 'Verified'] %}<i class="bi bi-check"></i>{% else %}3{% endif %}</span>
+                            <div class="small fw-semibold mt-1">Solved</div>
+                        </div>
+                        <div class="step-item {% if complaint.verified or complaint.citizen_feedback == 'Satisfied' %}step-done{% else %}step-item{% endif %}">
+                            <span class="step-circle">{% if complaint.verified or complaint.citizen_feedback == 'Satisfied' %}<i class="bi bi-patch-check"></i>{% else %}4{% endif %}</span>
+                            <div class="small fw-semibold mt-1">Closed</div>
+                        </div>
+                    </div>
+
+                    <!-- Worker Completion Notes -->
+                    {% if complaint.completion_note %}
+                    <div class="alert alert-success-subtle border border-success-subtle py-2 px-3 mb-3 small rounded-3">
+                        <strong><i class="bi bi-chat-left-quote me-1"></i>Worker Resolution Note:</strong>
+                        <div>{{ complaint.completion_note }}</div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Citizen Feedback Action Panel -->
+                    {% if complaint.status in ['Completed', 'Verified'] %}
+                        {% if not complaint.citizen_feedback %}
+                        <div class="card border-primary-subtle bg-primary-subtle bg-opacity-10 p-3 rounded-3 mt-3">
+                            <h6 class="fw-bold text-primary mb-2">
+                                <i class="bi bi-person-check-fill me-1"></i>Are you satisfied with this resolution?
+                            </h6>
+                            <p class="small text-muted mb-3">Please confirm if the problem was fixed properly or dispute to reopen the ticket.</p>
+                            
+                            <div class="d-flex gap-2">
+                                <!-- Confirm Button (Triggers modal) -->
+                                <button type="button" class="btn btn-success btn-sm flex-fill" data-bs-toggle="modal" data-bs-target="#confirmModal{{ complaint.id }}">
+                                    <i class="bi bi-hand-thumbs-up-fill me-1"></i> Confirm & Close
+                                </button>
+                                <!-- Reopen Button (Triggers modal) -->
+                                <button type="button" class="btn btn-outline-danger btn-sm flex-fill" data-bs-toggle="modal" data-bs-target="#reopenModal{{ complaint.id }}">
+                                    <i class="bi bi-arrow-repeat me-1"></i> Not Fixed (Reopen)
+                                </button>
+                            </div>
+                        </div>
+                        {% elif complaint.citizen_feedback == 'Satisfied' %}
+                        <div class="alert alert-success py-2 px-3 small rounded-3 mb-0">
+                            <i class="bi bi-patch-check-fill me-1"></i><strong>Confirmed by you:</strong> Issue resolved satisfactorily.
+                            {% if complaint.citizen_rating %}
+                                <span class="ms-2 text-warning">
+                                    {% for r in range(complaint.citizen_rating) %}★{% endfor %}
+                                </span>
+                            {% endif %}
+                            {% if complaint.citizen_feedback_note %}
+                                <div class="text-muted mt-1 fst-italic">"{{ complaint.citizen_feedback_note }}"</div>
+                            {% endif %}
+                        </div>
+                        {% elif complaint.citizen_feedback == 'Unsatisfied' %}
+                        <div class="alert alert-warning py-2 px-3 small rounded-3 mb-0">
+                            <i class="bi bi-exclamation-circle-fill me-1"></i><strong>Reopened by you:</strong> Resolution was disputed.
+                            {% if complaint.citizen_feedback_note %}
+                                <div class="mt-1 text-dark fst-italic">"{{ complaint.citizen_feedback_note }}"</div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    {% endif %}
+
+                </div>
+
+                <div class="card-footer bg-white border-top-0 d-flex align-items-center justify-content-between small text-muted px-4 pb-3">
+                    <span>Ticket #{{ complaint.id }}</span>
+                    <span><i class="bi bi-people me-1"></i>{{ complaint.report_count }} Community Endorsement{{ 's' if complaint.report_count != 1 else '' }}</span>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Confirm Resolution Modal -->
+        <div class="modal fade" id="confirmModal{{ complaint.id }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content rounded-4 border-0 shadow">
+                    <form action="{{ url_for('citizen_confirm_resolution', complaint_id=complaint.id) }}" method="POST">
+                        <div class="modal-header border-0 pb-0">
+                            <h5 class="modal-title fw-bold text-success"><i class="bi bi-check-circle-fill me-2"></i>Confirm Resolution</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body py-3">
+                            <p class="small text-muted">Thank you for helping verify the civic work! How satisfied are you with the resolution?</p>
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold">Satisfaction Rating</label>
+                                <select name="rating" class="form-select">
+                                    <option value="5" selected>⭐⭐⭐⭐⭐ Outstanding (5/5)</option>
+                                    <option value="4">⭐⭐⭐⭐ Good (4/5)</option>
+                                    <option value="3">⭐⭐⭐ Acceptable (3/5)</option>
+                                    <option value="2">⭐⭐ Needs Improvement (2/5)</option>
+                                </select>
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label small fw-semibold">Feedback Note (Optional)</label>
+                                <textarea name="feedback_note" rows="2" class="form-control" placeholder="E.g., Great job, area is clean and safe now."></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer border-0 pt-0">
+                            <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-success btn-sm px-4">Submit & Close Ticket</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reopen Ticket Modal -->
+        <div class="modal fade" id="reopenModal{{ complaint.id }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content rounded-4 border-0 shadow">
+                    <form action="{{ url_for('citizen_reopen_complaint', complaint_id=complaint.id) }}" method="POST">
+                        <div class="modal-header border-0 pb-0">
+                            <h5 class="modal-title fw-bold text-danger"><i class="bi bi-arrow-counterclockwise me-2"></i>Reopen Civic Issue</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body py-3">
+                            <p class="small text-muted">If the issue is still unresolved or the uploaded completion proof is inadequate, please explain below. This will escalate the ticket priority.</p>
+                            <div class="mb-2">
+                                <label class="form-label small fw-semibold">Reason for Disputing Resolution <span class="text-danger">*</span></label>
+                                <textarea name="reopen_reason" rows="3" class="form-control" placeholder="E.g., The pothole was only filled with loose gravel and washed out again." required></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer border-0 pt-0">
+                            <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-danger btn-sm px-4">Dispute & Escalate</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        {% endfor %}
+    </div>
+
+    {% else %}
+    <div class="card border-0 shadow-sm p-5 text-center bg-white rounded-4">
+        <div class="py-4">
+            <i class="bi bi-emoji-smile text-muted display-4 d-block mb-3"></i>
+            <h4 class="fw-bold">No Issues Reported Yet</h4>
+            <p class="text-muted">You haven't reported any civic complaints. Notice a problem in your street?</p>
+            <a href="{{ url_for('report') }}" class="btn btn-primary px-4 shadow-sm">
+                <i class="bi bi-camera me-1"></i> Report Your First Issue
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

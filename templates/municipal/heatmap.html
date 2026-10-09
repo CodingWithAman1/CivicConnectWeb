@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Civic Heat Map | CivicConnect</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+          rel="stylesheet">
+
+    <link rel="stylesheet"
+          href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <style>
+
+        .page-header {
+            background: linear-gradient(135deg, #212529, #495057);
+            color: white;
+            border-radius: 18px;
+            padding: 30px;
+        }
+
+        #heatmap {
+            height: 620px;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(0,0,0,.12);
+        }
+
+        .legend {
+            background: var(--bg-surface);
+            color: var(--text-main);
+            padding: 12px 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,.15);
+            line-height: 1.6;
+        }
+
+        .legend span {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow">
+
+    <div class="container">
+
+        <a href="{{ url_for('dashboard') }}"
+           class="navbar-brand fw-bold">
+
+            <i class="bi bi-buildings-fill"></i>
+            CivicConnect Municipal
+
+        </a>
+
+        <div>
+
+            <span class="text-white me-3">
+
+                <i class="bi bi-person-circle"></i>
+                {{ username }}
+
+            </span>
+
+            <a href="{{ url_for('dashboard') }}"
+               class="btn btn-light btn-sm">
+
+                Dashboard
+
+            </a>
+
+        </div>
+
+    </div>
+
+</nav>
+
+
+<div class="container py-4">
+
+    <div class="page-header mb-4">
+
+        <h2>
+
+            <i class="bi bi-geo-alt-fill"></i>
+            Civic Issue Heat Map
+
+        </h2>
+
+        <p class="mb-0">
+
+            Visualize areas with higher concentrations and
+            priority of unresolved civic issues.
+
+        </p>
+
+    </div>
+
+
+    <!-- FILTERS -->
+
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-body">
+
+            <div class="row g-3 align-items-end">
+
+                <div class="col-md-4">
+
+                    <label for="categoryFilter"
+                           class="form-label fw-semibold">
+
+                        Category
+
+                    </label>
+
+                    <select id="categoryFilter"
+                            class="form-select">
+
+                        <option value="All">
+                            All Categories
+                        </option>
+
+                        {% for category in categories %}
+
+                        <option value="{{ category }}">
+                            {{ category }}
+                        </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+
+                <div class="col-md-4">
+
+                    <label for="statusFilter"
+                           class="form-label fw-semibold">
+
+                        Status
+
+                    </label>
+
+                    <select id="statusFilter"
+                            class="form-select">
+
+                        <option value="All">
+                            All Active Issues
+                        </option>
+
+                        <option value="Pending">
+                            Pending
+                        </option>
+
+                        <option value="In Progress">
+                            In Progress
+                        </option>
+
+                        <option value="Completed">
+                            Completed
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="col-md-4">
+
+                    <button id="resetFilters"
+                            class="btn btn-outline-dark w-100">
+
+                        <i class="bi bi-arrow-counterclockwise"></i>
+                        Reset Filters
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- SUMMARY -->
+
+    <div class="row g-3 mb-4">
+
+        <div class="col-md-3">
+
+            <div class="card shadow-sm h-100">
+
+                <div class="card-body text-center">
+
+                    <i class="bi bi-geo-alt-fill fs-2 text-danger"></i>
+
+                    <h3 id="issueCount"
+                        class="mt-2 mb-0">
+
+                        0
+
+                    </h3>
+
+                    <small class="text-muted">
+                        Issues on Map
+                    </small>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-md-3">
+
+            <div class="card shadow-sm h-100">
+
+                <div class="card-body text-center">
+
+                    <i class="bi bi-exclamation-triangle-fill fs-2 text-danger"></i>
+
+                    <h3 id="overdueCount"
+                        class="mt-2 mb-0">
+
+                        0
+
+                    </h3>
+
+                    <small class="text-muted">
+                        Overdue
+                    </small>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-md-3">
+
+            <div class="card shadow-sm h-100">
+
+                <div class="card-body text-center">
+
+                    <i class="bi bi-fire fs-2 text-warning"></i>
+
+                    <h3 id="priorityCount"
+                        class="mt-2 mb-0">
+
+                        0
+
+                    </h3>
+
+                    <small class="text-muted">
+                        High Priority
+                    </small>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-md-3">
+
+            <div class="card shadow-sm h-100">
+
+                <div class="card-body text-center">
+
+                    <i class="bi bi-people-fill fs-2 text-primary"></i>
+
+                    <h3 id="reportCount"
+                        class="mt-2 mb-0">
+
+                        0
+
+                    </h3>
+
+                    <small class="text-muted">
+                        Citizen Reports
+                    </small>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- MAP -->
+
+    <div id="heatmap"></div>
+
+
+    <div class="mt-3 text-muted small">
+
+        <i class="bi bi-info-circle"></i>
+
+        Brighter/higher-intensity areas represent locations
+        with more severe or heavily reported unresolved issues.
+
+    </div>
+
+</div>
+
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+
+
+<script>
+
+const issueData = {{ heatmap_data | tojson }};
+
+
+const map = L.map("heatmap");
+
+
+L.tileLayer(
+    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    {
+        maxZoom: 19,
+        attribution: "&copy; OpenStreetMap contributors"
+    }
+).addTo(map);
+
+
+const heatLayer = L.heatLayer(
+    [],
+    {
+        radius: 32,
+        blur: 24,
+        maxZoom: 17,
+        max: 10
+    }
+).addTo(map);
+
+
+const markerLayer = L.layerGroup().addTo(map);
+
+
+let firstLoad = true;
+
+
+function getFilteredIssues() {
+
+    const category =
+        document.getElementById("categoryFilter").value;
+
+    const status =
+        document.getElementById("statusFilter").value;
+
+
+    return issueData.filter(function(issue) {
+
+        const categoryMatch =
+            category === "All" ||
+            issue.category === category;
+
+        const statusMatch =
+            status === "All" ||
+            issue.status === status;
+
+        return categoryMatch && statusMatch;
+
+    });
+
+}
+
+
+function updateMap() {
+
+    const issues = getFilteredIssues();
+
+
+    const heatPoints = issues.map(function(issue) {
+
+        return [
+            issue.latitude,
+            issue.longitude,
+            issue.intensity
+        ];
+
+    });
+
+
+    heatLayer.setLatLngs(heatPoints);
+
+
+    markerLayer.clearLayers();
+
+
+    issues.forEach(function(issue) {
+
+        const marker =
+            L.circleMarker(
+                [
+                    issue.latitude,
+                    issue.longitude
+                ],
+                {
+                    radius: 5,
+                    color: "#212529",
+                    weight: 1,
+                    fillOpacity: 0.8
+                }
+            );
+
+
+        let urgency = "";
+
+        if (issue.overdue) {
+
+            urgency =
+                '<span class="badge bg-danger">OVERDUE</span>';
+
+        }
+        else if (issue.aging) {
+
+            urgency =
+                '<span class="badge bg-warning text-dark">AGING</span>';
+
+        }
+
+
+        marker.bindPopup(`
+
+            <div style="min-width:220px">
+
+                <h6 class="fw-bold mb-2">
+                    ${escapeHtml(issue.title)}
+                </h6>
+
+                <div class="mb-2">
+                    ${urgency}
+                </div>
+
+                <p class="mb-1">
+                    <strong>Category:</strong>
+                    ${escapeHtml(issue.category)}
+                </p>
+
+                <p class="mb-1">
+                    <strong>Status:</strong>
+                    ${escapeHtml(issue.status)}
+                </p>
+
+                <p class="mb-1">
+                    <strong>Priority:</strong>
+                    ${issue.priority}
+                </p>
+
+                <p class="mb-0">
+                    <strong>Reports:</strong>
+                    ${issue.reports}
+                </p>
+
+            </div>
+
+        `);
+
+
+        markerLayer.addLayer(marker);
+
+    });
+
+
+    document.getElementById("issueCount").textContent =
+        issues.length;
+
+
+    document.getElementById("overdueCount").textContent =
+        issues.filter(function(issue) {
+            return issue.overdue;
+        }).length;
+
+
+    document.getElementById("priorityCount").textContent =
+        issues.filter(function(issue) {
+            return issue.priority >= 7;
+        }).length;
+
+
+    document.getElementById("reportCount").textContent =
+        issues.reduce(function(total, issue) {
+            return total + issue.reports;
+        }, 0);
+
+
+    if (issues.length > 0 && firstLoad) {
+
+        const bounds =
+            L.latLngBounds(
+                issues.map(function(issue) {
+                    return [
+                        issue.latitude,
+                        issue.longitude
+                    ];
+                })
+            );
+
+        map.fitBounds(
+            bounds,
+            {
+                padding: [35, 35]
+            }
+        );
+
+        firstLoad = false;
+
+    }
+    else if (issues.length === 0) {
+
+        map.setView(
+            [20.5937, 78.9629],
+            5
+        );
+
+    }
+
+}
+
+
+function escapeHtml(value) {
+
+    return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+
+}
+
+
+document
+    .getElementById("categoryFilter")
+    .addEventListener(
+        "change",
+        updateMap
+    );
+
+
+document
+    .getElementById("statusFilter")
+    .addEventListener(
+        "change",
+        updateMap
+    );
+
+
+document
+    .getElementById("resetFilters")
+    .addEventListener(
+        "click",
+        function() {
+
+            document.getElementById(
+                "categoryFilter"
+            ).value = "All";
+
+            document.getElementById(
+                "statusFilter"
+            ).value = "All";
+
+            updateMap();
+
+        }
+    );
+
+
+updateMap();
+
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+
+</html>
