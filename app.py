@@ -30,7 +30,11 @@ app = Flask(__name__)
 
 # Secret key & database configuration from environment
 app.secret_key = os.getenv("SECRET_KEY", "civicConnect9690_default_dev_secret")
-app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("SQLALCHEMY_DATABASE_URI", "sqlite:///users.db")
+
+raw_db_uri = os.getenv("SQLALCHEMY_DATABASE_URI", "sqlite:///users.db")
+if raw_db_uri.startswith("postgres://"):
+    raw_db_uri = raw_db_uri.replace("postgres://", "postgresql://", 1)
+app.config["SQLALCHEMY_DATABASE_URI"] = raw_db_uri
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 # Maximum upload payload size (16MB default)
