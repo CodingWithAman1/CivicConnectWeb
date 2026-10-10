@@ -1,5 +1,6 @@
 from flask import Flask, request, render_template, redirect, url_for, session, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import text
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 import os
@@ -3099,7 +3100,36 @@ def municipal():
     return redirect(url_for("auth", role="municipal"))
 
 
+@app.route("/api/db-status")
+def api_db_status():
+    """Healthcheck endpoint to verify database connectivity and engine type."""
+    try:
+        db.session.execute(text("SELECT 1"))
+        return jsonify({
+            "status": "connected",
+            "engine": db.engine.name,
+            "database": "postgresql" if db.engine.name == "postgresql" else "sqlite"
+        })
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "error": str(e)
+        }), 500
+
+
 with app.app_context():
+    try:
+        db.session.execute(text("SELECT 1"))
+        engine_type = db.engine.name.upper()
+        print("==================================================")
+        print(f"[OK] SQL DATABASE CONNECTED SUCCESSFULLY!")
+        print(f"     Database Engine: {engine_type}")
+        print("==================================================")
+    except Exception as e:
+        print("==================================================")
+        print(f"[ERROR] DATABASE CONNECTION FAILED: {e}")
+        print("==================================================")
+
     db.create_all()
     migrate_database_schema()
 
