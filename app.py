@@ -56,15 +56,62 @@ def allowed_file(filename):
 
 db = SQLAlchemy(app)
 
-# Gemini AI Client configuration
+# Gemini AI Client configuration & helper
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-
 gemini_client = None
+
+
+def get_gemini_client():
+    """Lazily load or retrieve the Gemini Client instance."""
+    global gemini_client
+    if gemini_client is not None:
+        return gemini_client
+    key = os.getenv("GEMINI_API_KEY")
+    if key:
+        try:
+            gemini_client = genai.Client(api_key=key.strip())
+            return gemini_client
+        except Exception as e:
+            print(f"Warning: Could not initialize Gemini client: {e}")
+            return None
+    return None
+
+
+def generate_gemini_content(contents, candidate_models=None):
+    """
+    Calls Gemini API with automatic fallback across supported model tiers.
+    Tries primary gemini-3.8-flash -> gemini-flash-latest -> gemini-3.5-flash -> gemini-2.5-flash.
+    """
+    client = get_gemini_client()
+    if not client:
+        raise ValueError("GEMINI_API_KEY is not configured or Gemini client failed to initialize.")
+
+    if not candidate_models:
+        configured = os.getenv("GEMINI_MODEL")
+        candidate_models = []
+        if configured:
+            candidate_models.append(configured.strip())
+        for fallback in ["gemini-3.8-flash", "gemini-flash-latest", "gemini-3.5-flash", "gemini-2.5-flash"]:
+            if fallback not in candidate_models:
+                candidate_models.append(fallback)
+
+    last_error = None
+    for model_name in candidate_models:
+        try:
+            return client.models.generate_content(
+                model=model_name,
+                contents=contents
+            )
+        except Exception as err:
+            last_error = err
+            print(f"[Gemini] Model '{model_name}' failed: {err}. Attempting next model fallback...")
+            continue
+
+    raise last_error
+
+
 if GEMINI_API_KEY:
-    try:
-        gemini_client = genai.Client(api_key=GEMINI_API_KEY)
-    except Exception as e:
-        print(f"Warning: Could not initialize Gemini client: {e}")
+    get_gemini_client()
 
 DUPLICATE_RADIUS_KM = float(os.getenv("DUPLICATE_RADIUS_KM", 0.3))
 
@@ -1707,10 +1754,11 @@ def analyze_issue():
             "error": "Unsupported file format. Please upload JPG, PNG, or WEBP."
         }, 400
 
-    if not gemini_client:
+    client = get_gemini_client()
+    if not client:
         return {
             "success": False,
-            "error": "AI service is currently unavailable. Please fill the form manually."
+            "error": "Gemini API key is not configured on the server. Please add GEMINI_API_KEY to your Render environment variables or fill the form manually."
         }, 503
 
     try:
@@ -1718,6 +1766,9 @@ def analyze_issue():
         image_bytes = file.read()
 
         mime_type = file.mimetype or "image/jpeg"
+        if mime_type not in ["image/jpeg", "image/png", "image/webp"]:
+            ext = file.filename.rsplit(".", 1)[1].lower() if "." in file.filename else "jpeg"
+            mime_type = "image/png" if ext == "png" else ("image/webp" if ext == "webp" else "image/jpeg")
 
         image_part = types.Part.from_bytes(
             data=image_bytes,
@@ -1761,13 +1812,7 @@ Do not use any other category.
 Do not return markdown fences.
 Return JSON only.
 """
-        response = gemini_client.models.generate_content(
-            model="gemini-3.6-flash",
-            contents=[
-                image_part,
-                prompt
-            ]
-        )
+        response = generate_gemini_content([image_part, prompt])
 
         result_text = response.text.strip()
 
@@ -1776,6 +1821,12 @@ Return JSON only.
             result_text = result_text.replace("```json", "")
             result_text = result_text.replace("```", "")
             result_text = result_text.strip()
+
+        # Extract JSON content between braces if present
+        if "{" in result_text and "}" in result_text:
+            first_brace = result_text.find("{")
+            last_brace = result_text.rfind("}")
+            result_text = result_text[first_brace:last_brace + 1]
 
         result = json.loads(result_text)
 
@@ -1793,10 +1844,19 @@ Return JSON only.
     except Exception as e:
 
         print("Gemini Error:", e)
+        err_str = str(e)
+        if "API_KEY_INVALID" in err_str or "API key not valid" in err_str:
+            user_error = "Invalid GEMINI_API_KEY. Please verify your Gemini API key in your Render environment variables."
+        elif "RESOURCE_EXHAUSTED" in err_str or "quota" in err_str.lower() or "429" in err_str:
+            user_error = "Gemini API rate limit or quota exceeded. Please try again in a few moments or fill the form manually."
+        elif "GEMINI_API_KEY" in err_str:
+            user_error = "Gemini API key is not configured on the server. Please add GEMINI_API_KEY to Render environment variables."
+        else:
+            user_error = f"AI analysis error: {err_str[:120]}" if len(err_str) < 120 else "Could not analyze the image. Please fill the form manually."
 
         return {
             "success": False,
-            "error": "Could not analyze the image. Please fill the form manually."
+            "error": user_error
         }, 500
 
 
@@ -2637,10 +2697,7 @@ Rules:
 - AI is only an assistant; the municipal officer makes the final decision.
 """
 
-        response = gemini_client.models.generate_content(
-            model="gemini-3.6-flash",
-            contents=contents + [prompt]
-        )
+        response = generate_gemini_content(contents + [prompt])
 
         result_text = response.text.strip()
 
@@ -2776,10 +2833,7 @@ Rules:
 
     try:
 
-        response = gemini_client.models.generate_content(
-            model="gemini-3.6-flash",
-            contents=[prompt]
-        )
+        response = generate_gemini_content([prompt])
 
         result_text = response.text.strip()
 

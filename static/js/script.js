@@ -98,7 +98,7 @@
             const drawer = document.getElementById('civicNotifDrawer');
             const bell = document.getElementById('civicNotifBellBtn');
             if (drawer && notifDrawerVisible) {
-                if (!drawer.contains(e.target) && !bell.contains(e.target)) {
+                if (!drawer.contains(e.target) && (!bell || !bell.contains(e.target))) {
                     drawer.classList.remove('show');
                     notifDrawerVisible = false;
                 }
@@ -196,6 +196,16 @@
                 e.stopPropagation();
                 notifDrawerVisible = !notifDrawerVisible;
                 drawer.classList.toggle('show', notifDrawerVisible);
+                if (notifDrawerVisible && window.innerWidth > 576) {
+                    const rect = drawer.getBoundingClientRect();
+                    if (rect.left < 10) {
+                        drawer.style.right = 'auto';
+                        drawer.style.left = '0';
+                    } else if (rect.right > window.innerWidth - 10) {
+                        drawer.style.right = '0';
+                        drawer.style.left = 'auto';
+                    }
+                }
             });
         }
 
@@ -318,6 +328,20 @@
         if (hubBtn && link) {
             hubBtn.href = link;
         }
+
+        // Explicitly suppress floating emergency docked pill while modal is open
+        const dockedPill = document.getElementById('civicEmergencyDockedPill');
+        if (dockedPill) {
+            dockedPill.style.display = 'none';
+        }
+
+        modal.addEventListener('hidden.bs.modal', function () {
+            const activeDockedPill = document.getElementById('civicEmergencyDockedPill');
+            const banner = document.getElementById('civicEmergencyBanner');
+            if (activeDockedPill && (!banner || banner.style.display === 'none')) {
+                activeDockedPill.style.display = 'flex';
+            }
+        }, { once: true });
 
         if (window.bootstrap && window.bootstrap.Modal) {
             const bsModal = bootstrap.Modal.getInstance(modal) || new bootstrap.Modal(modal);

@@ -979,4 +979,100 @@ nav[class*="bg-dark"] .nav-link:hover {
         padding: 6px 12px;
         font-size: 0.75rem;
     }
+
+    /* Mobile Notification Drawer: pinned firmly inside viewport margins */
+    .civic-notif-drawer {
+        position: fixed !important;
+        top: 60px !important;
+        left: 12px !important;
+        right: 12px !important;
+        width: auto !important;
+        max-width: calc(100vw - 24px) !important;
+        margin: 0 !important;
+        max-height: calc(100vh - 80px) !important;
+        border-radius: var(--radius-lg) !important;
+        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45) !important;
+        z-index: 100050 !important;
+    }
+
+    .civic-notif-drawer-body {
+        max-height: calc(100vh - 200px) !important;
+        overflow-y: auto !important;
+    }
+}
+
+/* ==========================================================================
+   MODAL & FLOATING WIDGET ISOLATION
+   Hides floating emergency pill & theme button while modals are open
+   ========================================================================== */
+#civicEmergencyModal {
+    z-index: 100060 !important;
+}
+.modal-backdrop {
+    z-index: 100055 !important;
+}
+
+body.modal-open .civic-emergency-docked-pill,
+body.modal-open #civicEmergencyDockedPill,
+body.modal-open .civic-theme-widget {
+    display: none !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    visibility: hidden !important;
+}
+
+/* Emergency Modal Mobile Layout & Contrast */
+@media (max-width: 576px) {
+    #civicEmergencyModal .modal-dialog {
+        margin: 12px;
+        max-width: calc(100vw - 24px);
+    }
+    #civicEmergencyModal .modal-content {
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+    }
+    #civicEmergencyModal .modal-body {
+        padding: 16px !important;
+        max-height: 60vh;
+        overflow-y: auto;
+    }
+    #civicEmergencyModal .modal-footer {
+        flex-direction: column-reverse !important;
+        gap: 10px !important;
+        padding: 14px 16px !important;
+    }
+    #civicEmergencyModal .modal-footer .btn,
+    #civicEmergencyModal .modal-footer a {
+        width: 100% !important;
+        margin: 0 !important;
+        text-align: center;
+        padding: 12px 16px;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    #civicEmergencyModal #civicModalCrisisHubBtn {
+        background-color: #ef4444 !important;
+        color: #ffffff !important;
+        border-color: #dc2626 !important;
+        box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4);
+    }
+}
+
+/* Dark theme styling for Civil Safety Emergency Modal */
+[data-theme="dark"] #civicEmergencyModal .modal-content {
+    background: var(--bg-surface);
+    color: var(--text-main);
+    border-color: #ef4444 !important;
+}
+[data-theme="dark"] #civicEmergencyModal .modal-footer,
+[data-theme="dark"] #civicEmergencyModal .modal-body .bg-light {
+    background: var(--bg-elevated) !important;
+    border-color: var(--border-medium) !important;
+    color: var(--text-main) !important;
+}
+[data-theme="dark"] #civicEmergencyModal .modal-body h6,
+[data-theme="dark"] #civicEmergencyModal .modal-body p {
+    color: var(--text-main) !important;
 }
