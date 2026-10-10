@@ -1860,6 +1860,18 @@ Return JSON only.
         }, 500
 
 
+@app.errorhandler(413)
+def handle_large_file_error(error):
+    """Gracefully handle files exceeding MAX_CONTENT_LENGTH with JSON."""
+    if request.path.startswith("/api/") or request.path == "/analyze_issue":
+        return jsonify({
+            "success": False,
+            "error": "The uploaded image file is too large. Please upload an image under 16MB."
+        }), 413
+    flash("The uploaded file exceeds the maximum allowed size.", "danger")
+    return redirect(request.url), 413
+
+
 # ==========================
 # My Complaints
 # ==========================
